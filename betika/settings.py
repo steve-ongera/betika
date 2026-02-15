@@ -29,6 +29,10 @@ INSTALLED_APPS = [
     'aviator',
 ]
 
+# Set custom user model
+AUTH_USER_MODEL = 'aviator.User'
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
