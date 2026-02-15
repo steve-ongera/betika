@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Deposit - Aviator Game{% endblock %}
+
+{% block extra_css %}
+<style>
+    .deposit-container {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+    
+    .deposit-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 2px solid var(--border-color);
+    }
+    
+    .deposit-title {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+    
+    .mpesa-logo {
+        text-align: center;
+        font-size: 3rem;
+        margin: 1rem 0;
+    }
+    
+    .quick-deposits {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .quick-deposit-btn {
+        padding: 1.5rem;
+        background-color: var(--dark-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .quick-deposit-btn:hover {
+        border-color: var(--primary-color);
+        background-color: var(--hover-bg);
+    }
+    
+    .quick-deposit-btn.selected {
+        border-color: var(--primary-color);
+        background-color: var(--primary-color);
+    }
+    
+    .deposit-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+    
+    .custom-amount {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.5rem;
+        text-align: center;
+        background-color: var(--dark-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        color: white;
+        margin: 1rem 0;
+    }
+    
+    .custom-amount:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    
+    .deposit-info {
+        background-color: var(--dark-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .info-row .value {
+        color: var(--text-primary);
+        font-weight: bold;
+    }
+    
+    .deposit-btn {
+        width: 100%;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, var(--success-color), #66bb6a);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .deposit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+    
+    .deposit-btn:disabled {
+        background: var(--border-color);
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .instructions {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid var(--warning-color);
+        padding: 1rem;
+        margin-top: 2rem;
+        border-radius: 5px;
+    }
+    
+    .instructions h4 {
+        color: var(--warning-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .instructions ol {
+        padding-left: 1.5rem;
+        color: var(--text-secondary);
+    }
+    
+    .instructions li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="deposit-container">
+    <div class="deposit-card">
+        <h1 class="deposit-title">💰 Deposit Funds</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Add money to your account via M-Pesa
+        </p>
+        
+        <div class="mpesa-logo">📱 M-PESA</div>
+        
+        <h3 style="margin-bottom: 1rem;">Select Amount</h3>
+        <div class="quick-deposits">
+            <div class="quick-deposit-btn" onclick="selectAmount(100)">
+                <div class="deposit-amount">100</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+            <div class="quick-deposit-btn" onclick="selectAmount(500)">
+                <div class="deposit-amount">500</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+            <div class="quick-deposit-btn" onclick="selectAmount(1000)">
+                <div class="deposit-amount">1,000</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+            <div class="quick-deposit-btn" onclick="selectAmount(2000)">
+                <div class="deposit-amount">2,000</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+            <div class="quick-deposit-btn" onclick="selectAmount(5000)">
+                <div class="deposit-amount">5,000</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+            <div class="quick-deposit-btn" onclick="selectAmount(10000)">
+                <div class="deposit-amount">10,000</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+            </div>
+        </div>
+        
+        <h4 style="margin-bottom: 0.5rem;">Or Enter Custom Amount</h4>
+        <input type="number" id="customAmount" class="custom-amount" 
+               placeholder="Enter amount (Min: 10 KES)" 
+               min="10" max="300000" value="100"
+               oninput="updateDepositInfo()">
+        
+        <div class="form-group" style="margin-top: 1.5rem;">
+            <label for="phoneNumber">M-Pesa Phone Number</label>
+            <input type="tel" id="phoneNumber" class="form-control" 
+                   value="{{ user.phone_number }}" 
+                   placeholder="0712345678">
+        </div>
+        
+        <div class="deposit-info">
+            <div class="info-row">
+                <span>Deposit Amount:</span>
+                <span class="value" id="displayAmount">100 KES</span>
+            </div>
+            <div class="info-row">
+                <span>Transaction Fee:</span>
+                <span class="value">Free</span>
+            </div>
+            <div class="info-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.5rem;">
+                <span style="font-size: 1.1rem; color: var(--text-primary);">Total to Pay:</span>
+                <span class="value" style="font-size: 1.2rem; color: var(--success-color);" id="totalAmount">100 KES</span>
+            </div>
+        </div>
+        
+        <button class="deposit-btn" id="depositBtn" onclick="initiateDeposit()">
+            DEPOSIT VIA M-PESA
+        </button>
+        
+        <div class="instructions">
+            <h4>How it works:</h4>
+            <ol>
+                <li>Click "Deposit via M-Pesa" button</li>
+                <li>Enter your M-Pesa PIN on your phone</li>
+                <li>Confirm the transaction</li>
+                <li>Money will be credited instantly!</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedAmount = 100;
+    
+    function selectAmount(amount) {
+        selectedAmount = amount;
+        document.getElementById('customAmount').value = amount;
+        updateDepositInfo();
+        
+        // Update button styles
+        document.querySelectorAll('.quick-deposit-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.closest('.quick-deposit-btn').classList.add('selected');
+    }
+    
+    function updateDepositInfo() {
+        const amount = document.getElementById('customAmount').value;
+        selectedAmount = parseFloat(amount) || 0;
+        
+        document.getElementById('displayAmount').textContent = formatCurrency(selectedAmount) + ' KES';
+        document.getElementById('totalAmount').textContent = formatCurrency(selectedAmount) + ' KES';
+    }
+    
+    async function initiateDeposit() {
+        const amount = selectedAmount;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        const depositBtn = document.getElementById('depositBtn');
+        
+        if (amount < 10) {
+            showToast('Minimum deposit is 10 KES', 'error');
+            return;
+        }
+        
+        if (amount > 300000) {
+            showToast('Maximum deposit is 300,000 KES', 'error');
+            return;
+        }
+        
+        if (!phoneNumber) {
+            showToast('Please enter phone number', 'error');
+            return;
+        }
+        
+        depositBtn.disabled = true;
+        depositBtn.textContent = 'PROCESSING...';
+        
+        const result = await apiCall('{% url "aviator:api_initiate_deposit" %}', 'POST', {
+            amount: amount,
+            phone_number: phoneNumber
+        });
+        
+        if (result.success) {
+            showToast('STK push sent! Check your phone', 'success');
+            
+            // Start checking transaction status
+            checkTransactionStatus(result.checkout_request_id);
+        } else {
+            showToast(result.message, 'error');
+            depositBtn.disabled = false;
+            depositBtn.textContent = 'DEPOSIT VIA M-PESA';
+        }
+    }
+    
+    function checkTransactionStatus(checkoutRequestId) {
+        // Poll for transaction status
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds
+        
+        const interval = setInterval(async () => {
+            attempts++;
+            
+            if (attempts > maxAttempts) {
+                clearInterval(interval);
+                const depositBtn = document.getElementById('depositBtn');
+                depositBtn.disabled = false;
+                depositBtn.textContent = 'DEPOSIT VIA M-PESA';
+                showToast('Transaction timeout. Please try again.', 'warning');
+                return;
+            }
+            
+            // Check balance to see if deposit was successful
+            const balanceResult = await apiCall('{% url "aviator:api_user_balance" %}');
+            
+            // You would ideally check the specific transaction status
+            // For simplicity, we're just updating balance
+            await updateBalance();
+            
+        }, 1000);
+    }
+    
+    // Initialize
+    updateDepositInfo();
+</script>
+{% endblock %}
