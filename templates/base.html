@@ -10,6 +10,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -19,6 +24,7 @@
     <style>
         :root {
             --primary-color: #ff5722;
+            --primary-dark: #e64a19;
             --secondary-color: #1a1f2e;
             --dark-bg: #0f1419;
             --card-bg: #1a1f2e;
@@ -29,6 +35,8 @@
             --warning-color: #ff9800;
             --border-color: #2d3748;
             --hover-bg: #252b3b;
+            --sidebar-width: 280px;
+            --header-height: 70px;
         }
         
         * {
@@ -38,7 +46,7 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--dark-bg);
             color: var(--text-primary);
             line-height: 1.6;
@@ -48,140 +56,427 @@
         /* Header */
         .header {
             background-color: var(--secondary-color);
-            padding: 0.75rem 0;
-            border-bottom: 2px solid var(--border-color);
-            position: sticky;
+            height: var(--header-height);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.5);
         }
         
-        .logo {
+        .header-container {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo-icon:hover {
+            transform: rotate(-10deg) scale(1.1);
+        }
+        
+        .logo-text {
+            font-family: 'Sora', sans-serif;
             font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            text-decoration: none;
-            font-style: italic;
-        }
-        
-        .nav-menu a {
+            font-weight: 700;
             color: var(--text-primary);
             text-decoration: none;
-            padding: 0.5rem 0.75rem;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
+            letter-spacing: -0.5px;
         }
         
-        .nav-menu a:hover {
-            background-color: var(--hover-bg);
+        .logo-text span {
             color: var(--primary-color);
         }
         
-        .balance-display {
-            background-color: var(--dark-bg);
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .menu-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Desktop Navigation */
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
             padding: 0.5rem 1rem;
-            border-radius: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+        
+        .nav-links a i {
+            font-size: 1.1rem;
+        }
+        
+        /* User Actions */
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, var(--hover-bg), var(--card-bg));
+            padding: 0.6rem 1.25rem;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .balance-card i {
+            color: var(--success-color);
+            font-size: 1.2rem;
+        }
+        
+        .balance-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .balance-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .balance-amount {
-            font-weight: bold;
-            color: var(--success-color);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-family: 'Sora', sans-serif;
         }
         
         .btn-deposit {
-            background: linear-gradient(135deg, var(--primary-color), #ff7043);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 0.85rem;
-            transition: transform 0.2s;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
         }
         
         .btn-deposit:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
+        }
+        
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-logout:hover {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        /* Mobile Sidebar */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: var(--secondary-color);
+            z-index: 2000;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        
+        .mobile-sidebar.active {
+            left: 0;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .sidebar-close:hover {
+            color: var(--danger-color);
+        }
+        
+        .sidebar-user-info {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-balance {
+            background: linear-gradient(135deg, var(--dark-bg), var(--hover-bg));
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-balance-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success-color);
+            font-family: 'Sora', sans-serif;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .sidebar-nav a i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+        
+        .sidebar-actions {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
         
         /* Main Container */
         .main-container {
-            padding: 1rem;
+            margin-top: var(--header-height);
+            padding: 2rem 1.5rem;
+            min-height: calc(100vh - var(--header-height));
         }
         
         /* Footer */
         .footer {
             background-color: var(--secondary-color);
-            padding: 1.5rem 0;
-            margin-top: 2rem;
-            border-top: 2px solid var(--border-color);
+            padding: 3rem 0 1.5rem;
+            margin-top: 4rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .footer-section {
+            margin-bottom: 2rem;
         }
         
         .footer-section h6 {
-            color: var(--primary-color);
-            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
         }
         
         .footer-section a {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            line-height: 2;
+            transition: color 0.3s ease;
         }
         
         .footer-section a:hover {
             color: var(--primary-color);
         }
         
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), #ff7043);
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+        
+        .footer-payment-icons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            color: var(--text-secondary);
+        }
+        
+        /* Auth Pages */
+        .auth-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn-auth {
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-login {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-login:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
             border: none;
         }
         
-        .btn-success {
-            background-color: var(--success-color);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-        }
-        
-        /* Cards */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
         }
         
         /* Toast */
         .toast-container {
             position: fixed;
-            top: 80px;
+            top: calc(var(--header-height) + 20px);
             right: 20px;
             z-index: 9999;
         }
         
         .toast {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
             color: white;
             font-weight: 500;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            min-width: 280px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         
         .toast.success {
-            background-color: var(--success-color);
+            background: linear-gradient(135deg, var(--success-color), #45a049);
         }
         
         .toast.error {
-            background-color: var(--danger-color);
+            background: linear-gradient(135deg, var(--danger-color), #d32f2f);
         }
         
         .toast.warning {
-            background-color: var(--warning-color);
+            background: linear-gradient(135deg, var(--warning-color), #f57c00);
+        }
+        
+        .toast i {
+            font-size: 1.2rem;
         }
         
         @keyframes slideIn {
@@ -200,13 +495,35 @@
             background-color: var(--dark-bg);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
         
         .form-control:focus {
             background-color: var(--dark-bg);
             border-color: var(--primary-color);
             color: var(--text-primary);
-            box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.15);
+        }
+        
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
         }
         
         /* Scrollbar */
@@ -223,32 +540,105 @@
             border-radius: 4px;
         }
         
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--hover-bg);
+        }
+        
         /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.5rem 0;
+        @media (max-width: 991px) {
+            .desktop-nav {
+                display: none;
             }
             
-            .logo {
-                font-size: 1.25rem;
+            .menu-toggle {
+                display: block;
             }
             
-            .nav-menu {
-                font-size: 0.85rem;
+            .header-container {
+                padding: 0 1rem;
             }
             
-            .balance-display {
-                padding: 0.4rem 0.75rem;
-                font-size: 0.8rem;
+            .logo-text {
+                font-size: 1.3rem;
+            }
+            
+            .logo-icon {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .user-actions {
+                gap: 0.5rem;
+            }
+            
+            .balance-card {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .balance-label {
+                display: none;
+            }
+            
+            .balance-amount {
+                font-size: 0.95rem;
             }
             
             .btn-deposit {
-                padding: 0.4rem 0.75rem;
-                font-size: 0.75rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .btn-logout {
+                display: none;
             }
             
             .main-container {
-                padding: 0.5rem;
+                padding: 1.5rem 1rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .logo-text {
+                font-size: 1.1rem;
+            }
+            
+            .logo-icon {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .balance-card {
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .balance-card i {
+                font-size: 1rem;
+            }
+            
+            .balance-amount {
+                font-size: 0.85rem;
+            }
+            
+            .btn-deposit {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+            
+            .btn-deposit span {
+                display: none;
+            }
+            
+            .main-container {
+                padding: 1rem 0.75rem;
+            }
+            
+            .toast-container {
+                right: 10px;
+                left: 10px;
+            }
+            
+            .toast {
+                min-width: auto;
             }
         }
     </style>
@@ -256,58 +646,138 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Mobile Sidebar -->
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{% static 'images/plane.svg' %}" alt="Aviator" class="logo-icon">
+                <span class="logo-text">Avi<span>ator</span></span>
+            </div>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        {% if user.is_authenticated %}
+        <div class="sidebar-user-info">
+            <div class="sidebar-balance">
+                <div class="balance-label">Your Balance</div>
+                <div class="sidebar-balance-amount" id="sidebarBalance">
+                    {{ user.balance|floatformat:2 }} <small style="font-size: 0.8rem; color: var(--text-secondary);">KES</small>
+                </div>
+            </div>
+            <button class="btn-deposit w-100" onclick="window.location.href='{% url 'aviator:deposit' %}'">
+                <i class="bi bi-plus-circle"></i>
+                <span>Deposit Funds</span>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{% url 'aviator:game' %}">
+                <i class="bi bi-controller"></i>
+                <span>Play Game</span>
+            </a>
+            <a href="{% url 'aviator:betting_history' %}">
+                <i class="bi bi-clock-history"></i>
+                <span>Betting History</span>
+            </a>
+            <a href="{% url 'aviator:transactions' %}">
+                <i class="bi bi-wallet2"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="{% url 'aviator:profile' %}">
+                <i class="bi bi-person-circle"></i>
+                <span>My Profile</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-actions">
+            <button class="btn-logout w-100" onclick="window.location.href='{% url 'aviator:logout' %}'">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+        {% else %}
+        <div class="sidebar-user-info">
+            <p class="text-secondary mb-3">Sign in to start playing</p>
+            <a href="{% url 'aviator:login' %}" class="btn-deposit w-100 mb-2 text-center">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Login</span>
+            </a>
+            <a href="{% url 'aviator:register' %}" class="btn-logout w-100 text-center">
+                <i class="bi bi-person-plus"></i>
+                <span>Register</span>
+            </a>
+        </div>
+        {% endif %}
+    </aside>
+    
     <!-- Header -->
     <header class="header">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-4 col-md-2">
-                    <a href="{% url 'aviator:home' %}" class="logo">
-                        <i class="bi bi-airplane-fill"></i> Aviator
-                    </a>
-                </div>
-                
+        <div class="header-container container-fluid">
+            <!-- Logo -->
+            <div class="logo-container">
                 {% if user.is_authenticated %}
-                <div class="col-8 col-md-10">
-                    <div class="d-flex align-items-center justify-content-end gap-2">
-                        <nav class="nav-menu d-none d-md-flex gap-2">
-                            <a href="{% url 'aviator:game' %}">
-                                <i class="bi bi-controller"></i> Play
-                            </a>
-                            <a href="{% url 'aviator:betting_history' %}">
-                                <i class="bi bi-clock-history"></i> Bets
-                            </a>
-                            <a href="{% url 'aviator:transactions' %}">
-                                <i class="bi bi-wallet2"></i> Transactions
-                            </a>
-                            <a href="{% url 'aviator:profile' %}">
-                                <i class="bi bi-person-circle"></i> Profile
-                            </a>
-                        </nav>
-                        
-                        <div class="balance-display">
-                            <i class="bi bi-cash-coin"></i>
-                            <span class="balance-amount" id="userBalance">{{ user.balance|floatformat:2 }}</span>
-                            <small>KES</small>
-                        </div>
-                        
-                        <button class="btn-deposit" onclick="window.location.href='{% url 'aviator:deposit' %}'">
-                            <i class="bi bi-plus-circle"></i> Deposit
-                        </button>
-                        
-                        <a href="{% url 'aviator:logout' %}" class="text-secondary d-none d-md-inline">
-                            <i class="bi bi-box-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                {% else %}
-                <div class="col-8 col-md-10">
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'aviator:login' %}" class="btn btn-primary btn-sm">Login</a>
-                        <a href="{% url 'aviator:register' %}" class="btn btn-primary btn-sm">Register</a>
-                    </div>
-                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="bi bi-list"></i>
+                </button>
                 {% endif %}
+                <a href="{% url 'aviator:home' %}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+                    <img src="{% static 'images/plane.svg' %}" alt="Aviator" class="logo-icon">
+                    <span class="logo-text">Avi<span>ator</span></span>
+                </a>
             </div>
+            
+            <!-- Desktop Navigation -->
+            {% if user.is_authenticated %}
+            <nav class="desktop-nav">
+                <ul class="nav-links">
+                    <li><a href="{% url 'aviator:game' %}">
+                        <i class="bi bi-controller"></i>
+                        <span>Play</span>
+                    </a></li>
+                    <li><a href="{% url 'aviator:betting_history' %}">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Bets</span>
+                    </a></li>
+                    <li><a href="{% url 'aviator:transactions' %}">
+                        <i class="bi bi-wallet2"></i>
+                        <span>Transactions</span>
+                    </a></li>
+                    <li><a href="{% url 'aviator:profile' %}">
+                        <i class="bi bi-person-circle"></i>
+                        <span>Profile</span>
+                    </a></li>
+                </ul>
+                
+                <div class="user-actions">
+                    <div class="balance-card">
+                        <i class="bi bi-cash-coin"></i>
+                        <div class="balance-info">
+                            <span class="balance-label">Balance</span>
+                            <span class="balance-amount" id="userBalance">{{ user.balance|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-deposit" onclick="window.location.href='{% url 'aviator:deposit' %}'">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Deposit</span>
+                    </button>
+                    
+                    <button class="btn-logout" onclick="window.location.href='{% url 'aviator:logout' %}'">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </div>
+            </nav>
+            {% else %}
+            <div class="auth-buttons">
+                <a href="{% url 'aviator:login' %}" class="btn-auth btn-login">Login</a>
+                <a href="{% url 'aviator:register' %}" class="btn-auth btn-register">Register</a>
+            </div>
+            {% endif %}
         </div>
     </header>
     
@@ -320,41 +790,54 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-3 col-6 footer-section mb-3">
-                    <h6>About</h6>
-                    <p class="small text-secondary">
-                        Experience thrilling Aviator gameplay
+                <div class="col-lg-3 col-md-6 footer-section">
+                    <h6>About Aviator</h6>
+                    <p class="text-secondary small">
+                        Experience thrilling multiplayer gameplay with real-time betting and instant payouts.
                     </p>
                 </div>
                 
-                <div class="col-md-3 col-6 footer-section mb-3">
+                <div class="col-lg-3 col-md-6 footer-section">
                     <h6>Quick Links</h6>
-                    <ul class="list-unstyled">
+                    <ul>
                         <li><a href="{% url 'aviator:game' %}">Play Game</a></li>
                         <li><a href="#">How to Play</a></li>
+                        <li><a href="#">Game Rules</a></li>
+                        <li><a href="#">Leaderboard</a></li>
                     </ul>
                 </div>
                 
-                <div class="col-md-3 col-6 footer-section mb-3">
+                <div class="col-lg-3 col-md-6 footer-section">
                     <h6>Support</h6>
-                    <ul class="list-unstyled">
+                    <ul>
                         <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
                     </ul>
                 </div>
                 
-                <div class="col-md-3 col-6 footer-section mb-3">
-                    <h6>Payment</h6>
-                    <p class="small text-secondary">
-                        <i class="bi bi-phone-fill"></i> M-Pesa<br>
-                        <i class="bi bi-lightning-fill"></i> Instant<br>
-                        <i class="bi bi-shield-check"></i> Secure
-                    </p>
+                <div class="col-lg-3 col-md-6 footer-section">
+                    <h6>Payment Methods</h6>
+                    <div class="footer-payment-icons">
+                        <i class="bi bi-phone-fill"></i>
+                        <span class="text-secondary">M-Pesa</span>
+                    </div>
+                    <div class="footer-payment-icons mt-2">
+                        <i class="bi bi-lightning-fill"></i>
+                        <span class="text-secondary">Instant Deposits</span>
+                    </div>
+                    <div class="footer-payment-icons mt-2">
+                        <i class="bi bi-shield-check"></i>
+                        <span class="text-secondary">100% Secure</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="text-center pt-3 border-top border-secondary">
-                <small class="text-secondary">&copy; 2026 Aviator | 18+ | Play Responsibly</small>
+            <div class="footer-bottom">
+                <small class="text-secondary">
+                    &copy; 2026 Aviator Game. All rights reserved. | 18+ Only | Play Responsibly
+                </small>
             </div>
         </div>
     </footer>
@@ -362,25 +845,74 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
     
-    <!-- Bootstrap JS (Load after content) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
-    <!-- Base JavaScript (Load after Bootstrap) -->
+    <!-- Base JavaScript -->
     <script>
-        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Sidebar Toggle
+            const menuToggle = document.getElementById('menuToggle');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            function openSidebar() {
+                mobileSidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeSidebar() {
+                mobileSidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', openSidebar);
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Highlight Active Nav Link
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-links a, .sidebar-nav a');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
             // Global Toast Notification Function
             window.showToast = function(message, type = 'success') {
                 const container = document.getElementById('toastContainer');
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
-                toast.textContent = message;
+                
+                const icon = type === 'success' ? 'check-circle-fill' : 
+                             type === 'error' ? 'exclamation-circle-fill' : 
+                             'exclamation-triangle-fill';
+                
+                toast.innerHTML = `
+                    <i class="bi bi-${icon}"></i>
+                    <span>${message}</span>
+                `;
+                
                 container.appendChild(toast);
                 
                 setTimeout(() => {
                     toast.style.animation = 'slideIn 0.3s ease reverse';
                     setTimeout(() => {
-                        container.removeChild(toast);
+                        if (container.contains(toast)) {
+                            container.removeChild(toast);
+                        }
                     }, 300);
                 }, 3000);
             };
@@ -438,8 +970,15 @@
                 const result = await apiCall('{% url "aviator:api_user_balance" %}');
                 if (result.success) {
                     const balanceElement = document.getElementById('userBalance');
+                    const sidebarBalanceElement = document.getElementById('sidebarBalance');
+                    const formattedBalance = formatCurrency(result.total_balance);
+                    
                     if (balanceElement) {
-                        balanceElement.textContent = formatCurrency(result.total_balance);
+                        balanceElement.textContent = formattedBalance;
+                    }
+                    
+                    if (sidebarBalanceElement) {
+                        sidebarBalanceElement.innerHTML = `${formattedBalance} <small style="font-size: 0.8rem; color: var(--text-secondary);">KES</small>`;
                     }
                 }
             };

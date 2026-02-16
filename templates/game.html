@@ -35,6 +35,14 @@
         }
     }
     
+    @media (max-width: 576px) {
+        .game-canvas {
+            min-height: 350px;
+            height: 50vh;
+            padding: 0.75rem;
+        }
+    }
+    
     .multiplier-display {
         position: absolute;
         top: 50%;
@@ -54,6 +62,12 @@
         }
     }
     
+    @media (max-width: 576px) {
+        .multiplier-display {
+            font-size: 2.5rem;
+        }
+    }
+    
     .multiplier-display.flying {
         animation: pulse 0.5s infinite;
     }
@@ -65,11 +79,12 @@
     
     .plane-svg {
         position: absolute;
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         transition: all 0.1s linear;
         filter: drop-shadow(0 0 15px rgba(255, 87, 34, 0.8));
         z-index: 15;
+        will-change: transform, left, bottom;
     }
     
     @media (min-width: 768px) {
@@ -79,21 +94,39 @@
         }
     }
     
+    @media (max-width: 576px) {
+        .plane-svg {
+            width: 40px;
+            height: 40px;
+        }
+    }
+    
     .game-status {
         position: absolute;
         top: 1rem;
         left: 1rem;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0,0,0,0.8);
         padding: 0.75rem 1rem;
         border-radius: 8px;
         backdrop-filter: blur(10px);
         font-size: 0.9rem;
+        z-index: 20;
+        border: 1px solid var(--border-color);
     }
     
     @media (min-width: 768px) {
         .game-status {
             padding: 1rem 1.5rem;
             font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .game-status {
+            top: 0.5rem;
+            left: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
         }
     }
     
@@ -105,22 +138,69 @@
     .status-flying { color: var(--success-color); }
     .status-crashed { color: var(--danger-color); }
     
-    /* Round History - Like Betika */
+    /* Round History - Compact on Mobile */
     .round-history {
         position: absolute;
         top: 1rem;
         right: 1rem;
-        left: 1rem;
-        background: rgba(0,0,0,0.7);
-        padding: 0.75rem;
+        background: rgba(0,0,0,0.8);
+        padding: 0.5rem;
         border-radius: 8px;
         backdrop-filter: blur(10px);
+        z-index: 20;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
     }
     
     @media (min-width: 768px) {
         .round-history {
-            left: auto;
             max-width: 500px;
+            padding: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .round-history {
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.4rem;
+            max-width: 120px;
+        }
+        
+        .round-history.expanded {
+            max-width: calc(100% - 1rem);
+            left: 0.5rem;
+            right: 0.5rem;
+        }
+    }
+    
+    .history-header {
+        display: none;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    @media (max-width: 576px) {
+        .history-header {
+            display: flex;
+        }
+        
+        .history-header span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .history-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
         }
     }
     
@@ -129,10 +209,27 @@
         gap: 0.4rem;
         overflow-x: auto;
         padding: 0.25rem 0;
+        scrollbar-width: thin;
     }
     
     .history-items::-webkit-scrollbar {
-        height: 4px;
+        height: 3px;
+    }
+    
+    .history-items::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 2px;
+    }
+    
+    @media (max-width: 576px) {
+        .history-items {
+            gap: 0.3rem;
+            padding: 0.2rem 0;
+        }
+        
+        .round-history:not(.expanded) .history-items {
+            max-width: 100px;
+        }
     }
     
     .history-item {
@@ -143,6 +240,7 @@
         font-weight: bold;
         font-size: 0.75rem;
         white-space: nowrap;
+        flex-shrink: 0;
     }
     
     @media (min-width: 768px) {
@@ -152,9 +250,46 @@
         }
     }
     
+    @media (max-width: 576px) {
+        .history-item {
+            min-width: 38px;
+            padding: 0.3rem 0.4rem;
+            font-size: 0.65rem;
+        }
+    }
+    
     .history-item.low { background-color: #d32f2f; }
     .history-item.medium { background-color: #f57c00; }
     .history-item.high { background-color: #388e3c; }
+    
+    /* Mobile Layout Order - Betting Panel After Game Canvas */
+    @media (max-width: 991px) {
+        .game-container > div:first-child {
+            order: 1;
+        }
+        
+        .game-container > div:last-child {
+            order: 2;
+        }
+        
+        .betting-panel {
+            order: 1;
+        }
+        
+        .active-bets {
+            order: 2;
+        }
+        
+        .chat-section {
+            order: 3;
+        }
+        
+        .game-container > div:last-child {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
     
     /* Betting Panel */
     .betting-panel {
@@ -162,6 +297,16 @@
         border-radius: 12px;
         padding: 1rem;
         border: 2px solid var(--border-color);
+    }
+    
+    @media (max-width: 576px) {
+        .betting-panel {
+            padding: 0.875rem;
+        }
+        
+        .betting-panel h6 {
+            font-size: 0.95rem;
+        }
     }
     
     .amount-control {
@@ -182,6 +327,11 @@
         cursor: pointer;
         font-size: 1.2rem;
         font-weight: bold;
+        transition: background-color 0.2s ease;
+    }
+    
+    .amount-btn:active {
+        background-color: var(--primary-color);
     }
     
     .amount-input {
@@ -198,6 +348,17 @@
         outline: none;
     }
     
+    @media (max-width: 576px) {
+        .amount-input {
+            font-size: 1.1rem;
+        }
+        
+        .amount-btn {
+            padding: 0.4rem 0.65rem;
+            font-size: 1.1rem;
+        }
+    }
+    
     .quick-amounts {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -211,13 +372,23 @@
         border-radius: 6px;
         cursor: pointer;
         text-align: center;
-        transition: all 0.3s;
+        transition: all 0.2s;
         font-size: 0.85rem;
+        font-weight: 600;
     }
     
-    .quick-amount:hover {
+    .quick-amount:hover,
+    .quick-amount:active {
         background-color: var(--hover-bg);
         border-color: var(--primary-color);
+        transform: scale(0.98);
+    }
+    
+    @media (max-width: 576px) {
+        .quick-amount {
+            padding: 0.45rem;
+            font-size: 0.8rem;
+        }
     }
     
     .bet-button {
@@ -231,9 +402,20 @@
         transition: all 0.3s;
     }
     
+    @media (max-width: 576px) {
+        .bet-button {
+            padding: 0.8rem;
+            font-size: 1rem;
+        }
+    }
+    
     .bet-button.place-bet {
         background: linear-gradient(135deg, var(--success-color), #66bb6a);
         color: white;
+    }
+    
+    .bet-button.place-bet:active {
+        transform: scale(0.98);
     }
     
     .bet-button.cashout {
@@ -251,6 +433,7 @@
         background: var(--border-color);
         cursor: not-allowed;
         animation: none;
+        opacity: 0.6;
     }
     
     /* Active Bets */
@@ -259,8 +442,25 @@
         border-radius: 12px;
         padding: 1rem;
         border: 2px solid var(--border-color);
-        max-height: 250px;
+        max-height: 300px;
         overflow-y: auto;
+    }
+    
+    @media (max-width: 991px) {
+        .active-bets {
+            max-height: 250px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .active-bets {
+            padding: 0.875rem;
+            max-height: 220px;
+        }
+        
+        .active-bets h6 {
+            font-size: 0.95rem;
+        }
     }
     
     .active-bet-item {
@@ -274,20 +474,39 @@
         font-size: 0.85rem;
     }
     
+    @media (max-width: 576px) {
+        .active-bet-item {
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+    }
+    
     /* Chat Section */
     .chat-section {
         background-color: var(--card-bg);
         border-radius: 12px;
         padding: 1rem;
         border: 2px solid var(--border-color);
-        height: 300px;
+        height: 350px;
         display: flex;
         flex-direction: column;
     }
     
-    @media (min-width: 768px) {
+    @media (min-width: 768px) and (max-width: 991px) {
         .chat-section {
-            height: 350px;
+            height: 300px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-section {
+            height: 280px;
+            padding: 0.875rem;
+        }
+        
+        .chat-section h6 {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
         }
     }
     
@@ -298,12 +517,30 @@
         padding-right: 0.5rem;
     }
     
+    .chat-messages::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 2px;
+    }
+    
     .chat-message {
         margin-bottom: 0.6rem;
         padding: 0.5rem;
         border-radius: 6px;
         background-color: var(--dark-bg);
         font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    @media (max-width: 576px) {
+        .chat-message {
+            padding: 0.45rem;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
     }
     
     .chat-user {
@@ -315,7 +552,7 @@
     /* Rain Alert */
     .rain-alert {
         position: fixed;
-        top: 100px;
+        top: calc(var(--header-height) + 20px);
         right: 15px;
         background: linear-gradient(135deg, #4caf50, #66bb6a);
         padding: 1rem;
@@ -326,10 +563,59 @@
         animation: slideIn 0.5s;
     }
     
+    @media (max-width: 576px) {
+        .rain-alert {
+            top: calc(var(--header-height) + 10px);
+            right: 10px;
+            left: 10px;
+            max-width: none;
+            padding: 0.875rem;
+        }
+    }
+    
     .rain-icon {
         font-size: 2.5rem;
         text-align: center;
         margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 576px) {
+        .rain-icon {
+            font-size: 2rem;
+        }
+    }
+    
+    /* Current Bet Info */
+    #currentBetInfo {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: var(--dark-bg);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    @media (max-width: 576px) {
+        #currentBetInfo {
+            padding: 0.65rem;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Auto Cashout */
+    .form-check-label {
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 576px) {
+        .form-check-label {
+            font-size: 0.85rem;
+        }
+        
+        #autoCashoutAmount {
+            width: 65px !important;
+            font-size: 0.85rem;
+        }
     }
 </style>
 {% endblock %}
@@ -348,8 +634,14 @@
                     <small class="text-secondary">Round #<span id="currentRound">1</span></small>
                 </div>
                 
-                <!-- Round History (Top Right) -->
-                <div class="round-history">
+                <!-- Round History (Top Right) - Collapsible on Mobile -->
+                <div class="round-history" id="roundHistory">
+                    <div class="history-header">
+                        <span>History</span>
+                        <button class="history-toggle" id="historyToggle">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </div>
                     <div class="history-items" id="historyItems">
                         <!-- Populated by JS -->
                     </div>
@@ -418,7 +710,7 @@
                 </button>
                 
                 <!-- Current Bet Info -->
-                <div id="currentBetInfo" class="mt-3 p-2 bg-dark rounded" style="display: none; font-size: 0.85rem;">
+                <div id="currentBetInfo" style="display: none;">
                     <div class="d-flex justify-content-between mb-1">
                         <span>Bet:</span>
                         <span id="activeBetAmount" class="text-success fw-bold">0</span>
@@ -471,7 +763,23 @@
         };
         
         let updateInterval = null;
-        let planePosition = { x: 10, y: 90, angle: -45 };
+        let planePosition = { x: 5, y: 5, angle: 0 };
+        
+        // History Toggle for Mobile
+        const historyToggle = document.getElementById('historyToggle');
+        const roundHistory = document.getElementById('roundHistory');
+        
+        if (historyToggle) {
+            historyToggle.addEventListener('click', function() {
+                roundHistory.classList.toggle('expanded');
+                const icon = this.querySelector('i');
+                if (roundHistory.classList.contains('expanded')) {
+                    icon.className = 'bi bi-chevron-up';
+                } else {
+                    icon.className = 'bi bi-chevron-down';
+                }
+            });
+        }
         
         // Auto-cashout checkbox
         document.getElementById('autoCashoutEnabled').addEventListener('change', function() {
@@ -626,31 +934,42 @@
         }
         
         function resetPlane() {
-            planePosition = { x: 10, y: 90, angle: -45 };
+            planePosition = { x: 5, y: 5, angle: 0 };
             const planeElement = document.getElementById('planeIcon');
-            planeElement.style.left = '10%';
-            planeElement.style.bottom = '10%';
-            planeElement.style.transform = 'rotate(-45deg)';
+            planeElement.style.left = '5%';
+            planeElement.style.bottom = '5%';
+            planeElement.style.transform = 'rotate(0deg)';
         }
         
         function animatePlane() {
             const planeElement = document.getElementById('planeIcon');
-            const canvas = document.getElementById('gameCanvas');
             
-            // Curved trajectory calculation
-            const progress = Math.min((gameState.currentMultiplier - 1) / 10, 1);
+            // Professional slanting trajectory - smooth diagonal path
+            // Maps multiplier to position: 1.00x -> 10.00x over controlled path
+            const mult = gameState.currentMultiplier;
             
-            // Bezier curve for smooth flight path
-            const startX = 10, startY = 10;
-            const controlX = 40, controlY = 60;
-            const endX = 85, endY = 85;
+            // Normalize progress (1.0x to 10.0x range)
+            const maxMultiplier = 10.0;
+            const progress = Math.min((mult - 1.0) / (maxMultiplier - 1.0), 1.0);
             
-            const t = progress;
-            const x = Math.pow(1-t, 2) * startX + 2 * (1-t) * t * controlX + Math.pow(t, 2) * endX;
-            const y = Math.pow(1-t, 2) * startY + 2 * (1-t) * t * controlY + Math.pow(t, 2) * endY;
+            // Diagonal path: bottom-left to top-right
+            // X: 5% to 75% (stays away from right edge)
+            // Y: 5% to 65% (stays away from top edge)
+            const startX = 5;
+            const endX = 75;
+            const startY = 5;
+            const endY = 65;
             
-            // Calculate angle based on trajectory
-            const angle = -45 + (progress * 30);
+            // Add slight curve using easing function
+            const easeProgress = progress < 0.5 
+                ? 2 * progress * progress 
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            
+            const x = startX + (endX - startX) * easeProgress;
+            const y = startY + (endY - startY) * easeProgress;
+            
+            // Angle: starts at 35deg, gradually increases to 50deg
+            const angle = 35 + (progress * 15);
             
             planePosition = { x, y, angle };
             
