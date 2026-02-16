@@ -4,272 +4,769 @@
 
 {% block extra_css %}
 <style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* Profile Header */
     .profile-header {
-        background: linear-gradient(135deg, var(--primary-color), #ff7043);
-        border-radius: 15px;
-        padding: 2rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        border-radius: 16px;
+        padding: 2.5rem;
         margin-bottom: 2rem;
         color: white;
+        box-shadow: 0 4px 20px rgba(255, 87, 34, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        top: -150px;
+        right: -150px;
+    }
+    
+    .profile-content {
+        position: relative;
+        z-index: 1;
     }
     
     .profile-avatar {
-        width: 80px;
-        height: 80px;
+        width: 90px;
+        height: 90px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 3rem;
         border: 4px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
     }
     
-    .stats-section {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .stat-item {
-        padding: 1rem;
-        text-align: center;
-        border-radius: 10px;
-        background-color: var(--dark-bg);
-        transition: all 0.3s;
-    }
-    
-    .stat-item:hover {
-        transform: translateY(-5px);
-        background-color: var(--hover-bg);
-    }
-    
-    .stat-icon {
-        font-size: 2rem;
+    .profile-name {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
     }
     
-    .stat-icon.success {
-        color: var(--success-color);
+    .profile-info {
+        opacity: 0.9;
+        font-size: 0.95rem;
     }
     
-    .stat-icon.primary {
+    .balance-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .balance-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .balance-value {
+        font-family: 'Sora', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 700;
+    }
+    
+    .balance-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-balance-action {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-deposit-action {
+        background: white;
         color: var(--primary-color);
     }
     
-    .stat-icon.warning {
-        color: var(--warning-color);
+    .btn-deposit-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
     }
     
-    .stat-icon.danger {
-        color: var(--danger-color);
+    .btn-withdraw-action {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
+    
+    .btn-withdraw-action:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .section-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .section-title i {
+        color: var(--primary-color);
+    }
+    
+    .stat-card {
+        background-color: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+        box-shadow: 0 8px 20px rgba(255, 87, 34, 0.2);
+    }
+    
+    .stat-icon {
+        font-size: 2.25rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .stat-icon.success { color: var(--success-color); }
+    .stat-icon.primary { color: var(--primary-color); }
+    .stat-icon.warning { color: var(--warning-color); }
+    .stat-icon.danger { color: var(--danger-color); }
     
     .stat-value {
+        font-family: 'Sora', sans-serif;
         font-size: 1.75rem;
-        font-weight: bold;
-        color: var(--primary-color);
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
     }
     
     .stat-label {
         color: var(--text-secondary);
         font-size: 0.9rem;
-        margin-top: 0.25rem;
     }
     
+    /* Achievements */
     .achievement-badge {
         background-color: var(--dark-bg);
         border: 2px solid var(--border-color);
         border-radius: 12px;
-        padding: 1rem;
+        padding: 1.25rem;
         text-align: center;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
+        height: 100%;
     }
     
     .achievement-badge:hover {
-        border-color: var(--primary-color);
         transform: scale(1.05);
     }
     
     .achievement-badge.unlocked {
         border-color: var(--success-color);
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), transparent);
     }
     
     .achievement-icon {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 3rem;
+        margin-bottom: 0.75rem;
     }
     
     .achievement-title {
-        font-weight: bold;
-        margin-bottom: 0.25rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
     }
     
     .achievement-desc {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: var(--text-secondary);
+        margin-bottom: 0.75rem;
     }
     
-    .progress-bar-custom {
-        height: 10px;
-        border-radius: 5px;
+    /* Account Info */
+    .info-card {
         background-color: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+    }
+    
+    .info-row:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .info-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    /* Progress Bar */
+    .progress-bar-custom {
+        height: 8px;
+        border-radius: 4px;
+        background-color: var(--border-color);
         overflow: hidden;
+        margin-top: 0.5rem;
     }
     
     .progress-fill {
         height: 100%;
-        background: linear-gradient(135deg, var(--primary-color), #ff7043);
-        transition: width 0.3s ease;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        transition: width 0.6s ease;
     }
     
-    .info-card {
-        background-color: var(--dark-bg);
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-backdrop.active {
+        display: flex;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .modal-content {
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        padding: 2.5rem;
+        max-width: 500px;
+        width: 90%;
         border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 1rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        animation: slideUp 0.3s ease;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    @keyframes slideUp {
+        from { 
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to { 
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .modal-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .modal-icon {
+        font-size: 4rem;
         margin-bottom: 1rem;
+    }
+    
+    .modal-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .modal-body {
+        margin-bottom: 2rem;
+    }
+    
+    .amount-input-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .amount-input-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+    
+    .amount-input {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        background-color: var(--dark-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-family: 'Sora', sans-serif;
+        transition: all 0.3s ease;
+    }
+    
+    .amount-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.15);
+    }
+    
+    .quick-amounts-withdraw {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .quick-amount-btn {
+        padding: 0.75rem;
+        background-color: var(--dark-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .quick-amount-btn:hover {
+        border-color: var(--primary-color);
+        background-color: var(--hover-bg);
+    }
+    
+    .quick-amount-btn.selected {
+        border-color: var(--danger-color);
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.2), transparent);
+    }
+    
+    .phone-input-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .phone-input-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+    
+    .phone-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        background-color: var(--dark-bg);
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+    
+    .phone-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.15);
+    }
+    
+    .withdrawal-summary {
+        background-color: var(--dark-bg);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        color: var(--text-secondary);
+    }
+    
+    .summary-row:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-row.total {
+        padding-top: 1rem;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+    
+    .summary-row .value {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: 'Sora', sans-serif;
+    }
+    
+    .summary-row.total .value {
+        color: var(--danger-color);
+        font-size: 1.35rem;
+    }
+    
+    .modal-btn {
+        width: 100%;
+        padding: 1.1rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    .modal-btn-danger {
+        background: linear-gradient(135deg, var(--danger-color), #d32f2f);
+        color: white;
+        box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+    }
+    
+    .modal-btn-danger:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+    }
+    
+    .modal-btn-secondary {
+        background-color: var(--dark-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        margin-top: 0.75rem;
+    }
+    
+    .modal-btn-secondary:hover {
+        background-color: var(--hover-bg);
+    }
+    
+    .modal-btn:disabled {
+        background: var(--border-color);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .processing-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--danger-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 1.5rem auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .success-checkmark {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background-color: var(--success-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scaleIn 0.5s ease;
+    }
+    
+    @keyframes scaleIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .success-checkmark i {
+        font-size: 3rem;
+        color: white;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    
+    .action-btn {
+        padding: 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .action-btn i {
+        font-size: 1.5rem;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-3px);
+    }
+    
+    /* Responsive */
+    @media (max-width: 991px) {
+        .profile-header {
+            padding: 2rem 1.5rem;
+        }
+        
+        .balance-value {
+            font-size: 2rem;
+        }
     }
     
     @media (max-width: 768px) {
         .profile-header {
-            padding: 1.5rem;
+            padding: 1.75rem 1.25rem;
         }
         
         .profile-avatar {
-            width: 60px;
-            height: 60px;
-            font-size: 2rem;
+            width: 70px;
+            height: 70px;
+            font-size: 2.5rem;
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+        }
+        
+        .balance-value {
+            font-size: 1.75rem;
+        }
+        
+        .stats-section {
+            padding: 1.5rem;
         }
         
         .stat-value {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .profile-header {
+            padding: 1.5rem 1rem;
+        }
+        
+        .balance-actions {
+            flex-direction: column;
+        }
+        
+        .modal-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .quick-amounts-withdraw {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid profile-container">
     <!-- Profile Header -->
     <div class="profile-header">
-        <div class="row align-items-center">
-            <div class="col-auto">
-                <div class="profile-avatar">
-                    <i class="bi bi-person-fill"></i>
+        <div class="profile-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center gap-3 mb-3 mb-lg-0">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <h3 class="profile-name mb-0">{{ user.full_name|default:"Player" }}</h3>
+                            <div class="profile-info">
+                                <div><i class="bi bi-phone-fill"></i> {{ user.phone_number }}</div>
+                                <div><i class="bi bi-calendar3"></i> Member since {{ user.date_joined|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col">
-                <h3 class="mb-1">{{ user.full_name|default:"Player" }}</h3>
-                <p class="mb-1 opacity-75">
-                    <i class="bi bi-phone-fill"></i> {{ user.phone_number }}
-                </p>
-                <p class="mb-0 opacity-75">
-                    <i class="bi bi-calendar3"></i> Member since {{ user.date_joined|date:"M d, Y" }}
-                </p>
-            </div>
-            <div class="col-auto text-end">
-                <div class="mb-2">
-                    <div class="small opacity-75">Current Balance</div>
-                    <h2 class="mb-0">{{ user.get_total_balance|floatformat:2 }} KES</h2>
+                <div class="col-lg-4">
+                    <div class="balance-card">
+                        <div class="balance-label">Total Balance</div>
+                        <div class="balance-value" id="profileBalance">{{ user.get_total_balance|floatformat:2 }} KES</div>
+                        <div class="balance-actions">
+                            <button class="btn-balance-action btn-deposit-action" onclick="window.location.href='{% url 'aviator:deposit' %}'">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Deposit</span>
+                            </button>
+                            <button class="btn-balance-action btn-withdraw-action" onclick="openWithdrawModal()">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Withdraw</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <a href="{% url 'aviator:deposit' %}" class="btn btn-light btn-sm">
-                    <i class="bi bi-plus-circle"></i> Deposit
-                </a>
             </div>
         </div>
     </div>
     
-    <!-- Main Statistics -->
+    <!-- Statistics -->
     <div class="stats-section">
-        <h5 class="mb-3">
-            <i class="bi bi-bar-chart-fill"></i> Your Statistics
+        <h5 class="section-title">
+            <i class="bi bi-bar-chart-fill"></i>
+            <span>Gaming Statistics</span>
         </h5>
         <div class="row g-3">
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon primary">
                         <i class="bi bi-dice-5-fill"></i>
                     </div>
-                    <div class="stat-value">{{ stats.total_bets }}</div>
+                    <div class="stat-value">{{ stats.total_bets|default:0 }}</div>
                     <div class="stat-label">Total Bets</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon success">
                         <i class="bi bi-trophy-fill"></i>
                     </div>
-                    <div class="stat-value">{{ stats.total_wins }}</div>
-                    <div class="stat-label">Wins</div>
+                    <div class="stat-value">{{ stats.total_wins|default:0 }}</div>
+                    <div class="stat-label">Total Wins</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon warning">
                         <i class="bi bi-cash-stack"></i>
                     </div>
-                    <div class="stat-value">{{ stats.total_wagered|floatformat:2 }}</div>
+                    <div class="stat-value">{{ stats.total_wagered|default:0|floatformat:2 }}</div>
                     <div class="stat-label">Total Wagered (KES)</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon success">
                         <i class="bi bi-coin"></i>
                     </div>
-                    <div class="stat-value">{{ stats.total_won|floatformat:2 }}</div>
+                    <div class="stat-value">{{ stats.total_won|default:0|floatformat:2 }}</div>
                     <div class="stat-label">Total Won (KES)</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon primary">
                         <i class="bi bi-star-fill"></i>
                     </div>
-                    <div class="stat-value">{{ stats.biggest_win|floatformat:2 }}</div>
+                    <div class="stat-value">{{ stats.biggest_win|default:0|floatformat:2 }}</div>
                     <div class="stat-label">Biggest Win (KES)</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon warning">
                         <i class="bi bi-speedometer2"></i>
                     </div>
-                    <div class="stat-value">{{ stats.biggest_multiplier|floatformat:2 }}x</div>
+                    <div class="stat-value">{{ stats.biggest_multiplier|default:0|floatformat:2 }}x</div>
                     <div class="stat-label">Best Multiplier</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon success">
                         <i class="bi bi-percent"></i>
                     </div>
-                    <div class="stat-value">{{ stats.win_rate|floatformat:1 }}%</div>
+                    <div class="stat-value">{{ stats.win_rate|default:0|floatformat:1 }}%</div>
                     <div class="stat-label">Win Rate</div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
-                <div class="stat-item">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
                     <div class="stat-icon {% if stats.total_won > stats.total_wagered %}success{% else %}danger{% endif %}">
                         <i class="bi bi-graph-up-arrow"></i>
                     </div>
                     <div class="stat-value">
-                        {% widthratio stats.total_won 1 1 as total_won_int %}
-                        {% widthratio stats.total_wagered 1 1 as total_wagered_int %}
-                        {% if total_wagered_int > 0 %}
-                            {{ total_won_int|add:"-"|add:total_wagered_int|floatformat:2 }}
-                        {% else %}
-                            0.00
-                        {% endif %}
+                        {% widthratio stats.total_won|default:0 1 1 as won %}
+                        {% widthratio stats.total_wagered|default:0 1 1 as wagered %}
+                        {{ won|add:"-"|add:wagered|floatformat:2 }}
                     </div>
                     <div class="stat-label">Net Profit (KES)</div>
                 </div>
@@ -279,15 +776,16 @@
     
     <!-- Achievements -->
     <div class="stats-section">
-        <h5 class="mb-3">
-            <i class="bi bi-award-fill"></i> Achievements
+        <h5 class="section-title">
+            <i class="bi bi-award-fill"></i>
+            <span>Achievements</span>
         </h5>
         <div class="row g-3">
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.total_bets >= 1 %}unlocked{% endif %}">
                     <div class="achievement-icon">🎮</div>
                     <div class="achievement-title">First Bet</div>
-                    <div class="achievement-desc">Place your first bet</div>
+                    <div class="achievement-desc">Place 1 bet</div>
                     <div class="mt-2">
                         {% if stats.total_bets >= 1 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
@@ -298,11 +796,11 @@
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.total_wins >= 1 %}unlocked{% endif %}">
                     <div class="achievement-icon">🏆</div>
                     <div class="achievement-title">First Win</div>
-                    <div class="achievement-desc">Win your first bet</div>
+                    <div class="achievement-desc">Win 1 bet</div>
                     <div class="mt-2">
                         {% if stats.total_wins >= 1 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
@@ -313,7 +811,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.total_bets >= 100 %}unlocked{% endif %}">
                     <div class="achievement-icon">💯</div>
                     <div class="achievement-title">Century</div>
@@ -322,52 +820,52 @@
                         {% if stats.total_bets >= 100 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
                         {% else %}
-                            <small class="text-secondary">{{ stats.total_bets }}/100</small>
+                            <small class="text-secondary">{{ stats.total_bets|default:0 }}/100</small>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.biggest_multiplier >= 10 %}unlocked{% endif %}">
                     <div class="achievement-icon">🚀</div>
                     <div class="achievement-title">High Flyer</div>
-                    <div class="achievement-desc">Cash out at 10x or higher</div>
+                    <div class="achievement-desc">Cash out at 10x</div>
                     <div class="mt-2">
                         {% if stats.biggest_multiplier >= 10 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
                         {% else %}
-                            <small class="text-secondary">{{ stats.biggest_multiplier|floatformat:2 }}x/10x</small>
+                            <small class="text-secondary">{{ stats.biggest_multiplier|default:0|floatformat:2 }}x/10x</small>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.win_rate >= 50 %}unlocked{% endif %}">
                     <div class="achievement-icon">⚡</div>
                     <div class="achievement-title">Consistent</div>
-                    <div class="achievement-desc">Maintain 50% win rate</div>
+                    <div class="achievement-desc">50% win rate</div>
                     <div class="mt-2">
                         {% if stats.win_rate >= 50 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
                         {% else %}
-                            <small class="text-secondary">{{ stats.win_rate|floatformat:1 }}%/50%</small>
+                            <small class="text-secondary">{{ stats.win_rate|default:0|floatformat:1 }}%/50%</small>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-3 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
                 <div class="achievement-badge {% if stats.total_won >= 10000 %}unlocked{% endif %}">
                     <div class="achievement-icon">💰</div>
                     <div class="achievement-title">Big Winner</div>
-                    <div class="achievement-desc">Win 10,000 KES total</div>
+                    <div class="achievement-desc">Win 10K total</div>
                     <div class="mt-2">
                         {% if stats.total_won >= 10000 %}
                             <i class="bi bi-check-circle-fill text-success"></i>
                         {% else %}
-                            <small class="text-secondary">{{ stats.total_won|floatformat:0 }}/10,000</small>
+                            <small class="text-secondary">{{ stats.total_won|default:0|floatformat:0 }}/10K</small>
                         {% endif %}
                     </div>
                 </div>
@@ -377,15 +875,16 @@
     
     <!-- Account Information -->
     <div class="stats-section">
-        <h5 class="mb-3">
-            <i class="bi bi-info-circle-fill"></i> Account Information
+        <h5 class="section-title">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Account Information</span>
         </h5>
         <div class="row">
             <div class="col-md-6">
                 <div class="info-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary">Main Balance</span>
-                        <strong>{{ user.balance|floatformat:2 }} KES</strong>
+                    <div class="info-row">
+                        <span class="info-label">Main Balance</span>
+                        <span class="info-value">{{ user.balance|floatformat:2 }} KES</span>
                     </div>
                     <div class="progress-bar-custom">
                         <div class="progress-fill" style="width: {% widthratio user.balance user.get_total_balance 100 %}%"></div>
@@ -393,44 +892,40 @@
                 </div>
                 
                 <div class="info-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary">Bonus Balance</span>
-                        <strong>{{ user.bonus_balance|floatformat:2 }} KES</strong>
+                    <div class="info-row">
+                        <span class="info-label">Bonus Balance</span>
+                        <span class="info-value">{{ user.bonus_balance|floatformat:2 }} KES</span>
                     </div>
                     <div class="progress-bar-custom">
-                        <div class="progress-fill" style="width: {% widthratio user.bonus_balance user.get_total_balance 100 %}%; background: linear-gradient(135deg, var(--warning-color), #ffb74d);"></div>
+                        <div class="progress-fill" style="width: {% widthratio user.bonus_balance user.get_total_balance 100 %}%; background: linear-gradient(90deg, var(--warning-color), #ffb74d);"></div>
                     </div>
                 </div>
             </div>
             
             <div class="col-md-6">
                 <div class="info-card">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="text-secondary small">Account Status</div>
-                            <div class="fw-bold text-success">
-                                <i class="bi bi-check-circle-fill"></i> Active
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-secondary small">Verification</div>
-                            <div class="fw-bold text-success">
-                                <i class="bi bi-shield-check"></i> Verified
-                            </div>
-                        </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Status</span>
+                        <span class="info-value text-success">
+                            <i class="bi bi-check-circle-fill"></i> Active
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Verification</span>
+                        <span class="info-value text-success">
+                            <i class="bi bi-shield-check"></i> Verified
+                        </span>
                     </div>
                 </div>
                 
                 <div class="info-card">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="text-secondary small">Last Login</div>
-                            <div class="fw-bold">{{ user.last_login|date:"M d, H:i" }}</div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-secondary small">Member For</div>
-                            <div class="fw-bold">{{ user.date_joined|timesince }}</div>
-                        </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Login</span>
+                        <span class="info-value">{{ user.last_login|date:"M d, H:i" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Member For</span>
+                        <span class="info-value">{{ user.date_joined|timesince }}</span>
                     </div>
                 </div>
             </div>
@@ -438,38 +933,289 @@
     </div>
     
     <!-- Quick Actions -->
-    <div class="row g-3">
-        <div class="col-md-4">
-            <a href="{% url 'aviator:game' %}" class="btn btn-primary w-100 p-3">
-                <i class="bi bi-controller"></i> Play Now
-            </a>
+    <div class="quick-actions mb-4">
+        <a href="{% url 'aviator:game' %}" class="action-btn btn-primary">
+            <i class="bi bi-controller"></i>
+            <span>Play Now</span>
+        </a>
+        <a href="{% url 'aviator:deposit' %}" class="action-btn btn-success">
+            <i class="bi bi-plus-circle"></i>
+            <span>Deposit</span>
+        </a>
+        <a href="{% url 'aviator:betting_history' %}" class="action-btn btn-secondary">
+            <i class="bi bi-clock-history"></i>
+            <span>History</span>
+        </a>
+    </div>
+</div>
+
+<!-- Withdrawal Modal -->
+<div class="modal-backdrop" id="withdrawModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-icon">💸</div>
+            <h2 class="modal-title">Withdraw Funds</h2>
+            <p class="modal-subtitle">Transfer money to your M-Pesa account</p>
         </div>
-        <div class="col-md-4">
-            <a href="{% url 'aviator:deposit' %}" class="btn btn-success w-100 p-3">
-                <i class="bi bi-plus-circle"></i> Deposit
-            </a>
+        
+        <div class="modal-body">
+            <div class="amount-input-group">
+                <label>
+                    <i class="bi bi-cash-stack"></i> Amount to Withdraw
+                </label>
+                <input type="number" id="withdrawAmount" class="amount-input" 
+                       placeholder="Enter amount" min="100" max="{{ user.balance }}" value="500">
+            </div>
+            
+            <div class="quick-amounts-withdraw">
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount(500)">500</div>
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount(1000)">1,000</div>
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount(2000)">2,000</div>
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount(5000)">5,000</div>
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount(10000)">10,000</div>
+                <div class="quick-amount-btn" onclick="selectWithdrawAmount({{ user.balance|floatformat:0 }})">All</div>
+            </div>
+            
+            <div class="phone-input-group">
+                <label>
+                    <i class="bi bi-phone"></i> M-Pesa Phone Number
+                </label>
+                <input type="tel" id="withdrawPhone" class="phone-input" 
+                       value="{{ user.phone_number }}" placeholder="0712345678">
+            </div>
+            
+            <div class="withdrawal-summary">
+                <div class="summary-row">
+                    <span>Current Balance:</span>
+                    <span class="value">{{ user.balance|floatformat:2 }} KES</span>
+                </div>
+                <div class="summary-row">
+                    <span>Withdrawal Amount:</span>
+                    <span class="value" id="displayWithdrawAmount">500.00 KES</span>
+                </div>
+                <div class="summary-row">
+                    <span>Transaction Fee:</span>
+                    <span class="value">Free</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Remaining Balance:</span>
+                    <span class="value" id="remainingBalance">{{ user.balance|add:"-500"|floatformat:2 }} KES</span>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4">
-            <a href="{% url 'aviator:betting_history' %}" class="btn btn-secondary w-100 p-3">
-                <i class="bi bi-clock-history"></i> View History
-            </a>
+        
+        <button class="modal-btn modal-btn-danger" id="withdrawBtn" onclick="processWithdrawal()">
+            <i class="bi bi-cash-coin"></i>
+            <span>Withdraw to M-Pesa</span>
+        </button>
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('withdrawModal')">
+            Cancel
+        </button>
+    </div>
+</div>
+
+<!-- Processing Modal -->
+<div class="modal-backdrop" id="processingModal">
+    <div class="modal-content">
+        <div class="modal-icon">⏳</div>
+        <h2 class="modal-title">Processing Withdrawal</h2>
+        <p class="modal-subtitle">Please wait while we process your request...</p>
+        <div class="processing-spinner"></div>
+        <p class="modal-subtitle">This may take a few moments</p>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="successModal">
+    <div class="modal-content">
+        <div class="success-checkmark">
+            <i class="bi bi-check-lg"></i>
         </div>
+        <h2 class="modal-title">Withdrawal Successful!</h2>
+        <p class="modal-subtitle">Your funds have been sent to your M-Pesa account</p>
+        
+        <div class="withdrawal-summary">
+            <div class="summary-row">
+                <span>Amount Withdrawn:</span>
+                <span class="value" id="successAmount">0 KES</span>
+            </div>
+            <div class="summary-row">
+                <span>Previous Balance:</span>
+                <span class="value" id="successOldBalance">0 KES</span>
+            </div>
+            <div class="summary-row total">
+                <span>New Balance:</span>
+                <span class="value" id="successNewBalance">0 KES</span>
+            </div>
+        </div>
+        
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('successModal'); location.reload();">
+            Close
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-backdrop" id="errorModal">
+    <div class="modal-content">
+        <div class="modal-icon" style="color: var(--danger-color);">❌</div>
+        <h2 class="modal-title" style="color: var(--danger-color);">Withdrawal Failed</h2>
+        <p class="modal-subtitle" id="errorMessage">An error occurred. Please try again.</p>
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('errorModal')">
+            Close
+        </button>
+        <button class="modal-btn modal-btn-danger" onclick="closeModal('errorModal'); openWithdrawModal();">
+            Try Again
+        </button>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate progress bars
-    const progressBars = document.querySelectorAll('.progress-fill');
-    progressBars.forEach(bar => {
-        const width = bar.style.width;
-        bar.style.width = '0%';
-        setTimeout(() => {
-            bar.style.width = width;
-        }, 100);
+    let selectedWithdrawAmount = 500;
+    const userBalance = parseFloat('{{ user.balance }}');
+    
+    console.log('💼 Profile page initialized. Balance:', userBalance);
+    
+    // Animate progress bars on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-fill');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
     });
-});
+    
+    function openWithdrawModal() {
+        document.getElementById('withdrawModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        updateWithdrawSummary();
+        console.log('💸 Withdrawal modal opened');
+    }
+    
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        document.body.style.overflow = '';
+        console.log(`✖️ Modal closed: ${modalId}`);
+    }
+    
+    function selectWithdrawAmount(amount) {
+        // Limit to available balance
+        selectedWithdrawAmount = Math.min(amount, userBalance);
+        document.getElementById('withdrawAmount').value = selectedWithdrawAmount;
+        updateWithdrawSummary();
+        
+        // Update button styles
+        document.querySelectorAll('.quick-amount-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
+        
+        console.log(`💰 Selected withdraw amount: ${selectedWithdrawAmount} KES`);
+    }
+    
+    function updateWithdrawSummary() {
+        const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+        selectedWithdrawAmount = Math.min(amount, userBalance);
+        
+        document.getElementById('displayWithdrawAmount').textContent = formatCurrency(selectedWithdrawAmount) + ' KES';
+        
+        const remaining = Math.max(0, userBalance - selectedWithdrawAmount);
+        document.getElementById('remainingBalance').textContent = formatCurrency(remaining) + ' KES';
+    }
+    
+    // Update summary on input change
+    document.addEventListener('DOMContentLoaded', function() {
+        const withdrawInput = document.getElementById('withdrawAmount');
+        if (withdrawInput) {
+            withdrawInput.addEventListener('input', updateWithdrawSummary);
+        }
+    });
+    
+    async function processWithdrawal() {
+        const amount = selectedWithdrawAmount;
+        const phoneNumber = document.getElementById('withdrawPhone').value;
+        
+        console.log(`🏁 Processing withdrawal: ${amount} KES to ${phoneNumber}`);
+        
+        // Validation
+        if (amount < 100) {
+            showToast('Minimum withdrawal is 100 KES', 'error');
+            return;
+        }
+        
+        if (amount > userBalance) {
+            showToast('Insufficient balance', 'error');
+            return;
+        }
+        
+        if (!phoneNumber || phoneNumber.length < 10) {
+            showToast('Please enter a valid phone number', 'error');
+            return;
+        }
+        
+        // Close withdraw modal and show processing
+        closeModal('withdrawModal');
+        document.getElementById('processingModal').classList.add('active');
+        
+        try {
+            console.log('📤 Sending withdrawal request...');
+            
+            const result = await apiCall('{% url "aviator:api_withdraw" %}', 'POST', {
+                amount: amount,
+                phone_number: phoneNumber
+            });
+            
+            console.log('📥 Withdrawal response:', result);
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                closeModal('processingModal');
+                
+                if (result.success) {
+                    console.log('✅ Withdrawal successful');
+                    
+                    // Update balance displays
+                    const newBalance = result.balance;
+                    document.getElementById('profileBalance').textContent = formatCurrency(newBalance) + ' KES';
+                    
+                    // Update header balance
+                    updateBalance();
+                    
+                    // Show success modal
+                    document.getElementById('successAmount').textContent = formatCurrency(amount) + ' KES';
+                    document.getElementById('successOldBalance').textContent = formatCurrency(userBalance) + ' KES';
+                    document.getElementById('successNewBalance').textContent = formatCurrency(newBalance) + ' KES';
+                    
+                    document.getElementById('successModal').classList.add('active');
+                    
+                    showToast(`✅ Successfully withdrew ${formatCurrency(amount)} KES`, 'success');
+                } else {
+                    console.error('❌ Withdrawal failed:', result.message);
+                    document.getElementById('errorMessage').textContent = result.message;
+                    document.getElementById('errorModal').classList.add('active');
+                }
+            }, 2000);
+            
+        } catch (error) {
+            console.error('💥 Withdrawal error:', error);
+            closeModal('processingModal');
+            document.getElementById('errorMessage').textContent = 'Network error. Please try again.';
+            document.getElementById('errorModal').classList.add('active');
+        }
+    }
+    
+    // Close modals when clicking outside
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
 </script>
 {% endblock %}
