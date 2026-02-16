@@ -8,95 +8,246 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 80vh;
+        min-height: calc(100vh - var(--header-height) - 100px);
+        padding: 2rem 1rem;
     }
     
     .auth-card {
-        background-color: var(--card-bg);
-        border-radius: 15px;
-        padding: 3rem;
+        background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+        border-radius: 20px;
+        padding: 3rem 2.5rem;
         width: 100%;
-        max-width: 450px;
-        border: 2px solid var(--border-color);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        max-width: 480px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-card::before {
+        content: "";
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 87, 34, 0.1) 0%, transparent 70%);
+        top: -150px;
+        right: -150px;
+    }
+    
+    .auth-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-logo-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        border-radius: 16px;
+        font-size: 2.5rem;
+        box-shadow: 0 8px 20px rgba(255, 87, 34, 0.3);
     }
     
     .auth-title {
+        font-family: 'Sora', sans-serif;
         text-align: center;
         font-size: 2rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
-        color: var(--primary-color);
+        color: var(--text-primary);
     }
     
     .auth-subtitle {
         text-align: center;
         color: var(--text-secondary);
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
+        font-size: 0.95rem;
     }
     
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.75rem;
     }
     
-    .form-group label {
+    .form-label {
         display: block;
-        margin-bottom: 0.5rem;
-        color: var(--text-secondary);
-        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .form-label i {
+        margin-right: 0.5rem;
+        color: var(--primary-color);
+    }
+    
+    .input-wrapper {
+        position: relative;
     }
     
     .form-control {
         width: 100%;
-        padding: 1rem;
+        padding: 1rem 1.25rem;
         background-color: var(--dark-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
         color: var(--text-primary);
         font-size: 1rem;
+        transition: all 0.3s ease;
     }
     
     .form-control:focus {
         outline: none;
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.15);
+    }
+    
+    .form-control::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.6;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0.5rem;
+        font-size: 1.2rem;
+        transition: color 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+        color: var(--primary-color);
     }
     
     .btn-submit {
         width: 100%;
-        padding: 1rem;
-        background: linear-gradient(135deg, var(--primary-color), #ff7043);
+        padding: 1.1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         color: white;
-        font-size: 1.1rem;
-        font-weight: bold;
+        font-size: 1.05rem;
+        font-weight: 700;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+        margin-top: 2rem;
     }
     
-    .btn-submit:hover {
+    .btn-submit:hover:not(:disabled) {
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
     }
     
     .btn-submit:disabled {
         background: var(--border-color);
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
+    }
+    
+    .btn-submit i {
+        font-size: 1.2rem;
+    }
+    
+    .auth-divider {
+        text-align: center;
+        margin: 2rem 0;
+        position: relative;
+    }
+    
+    .auth-divider::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: var(--border-color);
+    }
+    
+    .auth-divider span {
+        position: relative;
+        background: var(--card-bg);
+        padding: 0 1rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
     
     .auth-link {
         text-align: center;
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         color: var(--text-secondary);
+        font-size: 0.95rem;
     }
     
     .auth-link a {
         color: var(--primary-color);
         text-decoration: none;
-        font-weight: bold;
+        font-weight: 700;
+        transition: all 0.3s ease;
     }
     
     .auth-link a:hover {
         text-decoration: underline;
+    }
+    
+    .help-text {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .help-text i {
+        font-size: 0.9rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 576px) {
+        .auth-card {
+            padding: 2.5rem 1.75rem;
+        }
+        
+        .auth-title {
+            font-size: 1.75rem;
+        }
+        
+        .auth-logo-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        
+        .form-control {
+            padding: 0.875rem 1rem;
+        }
+        
+        .btn-submit {
+            padding: 1rem;
+            font-size: 1rem;
+        }
     }
 </style>
 {% endblock %}
@@ -104,29 +255,50 @@
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
-        <h1 class="auth-title">Welcome Back! ✈️</h1>
-        <p class="auth-subtitle">Login to start playing</p>
-        
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label for="phoneNumber">Phone Number</label>
-                <input type="tel" id="phoneNumber" class="form-control" 
-                       placeholder="0712345678 or +254712345678" required>
+        <div class="auth-content">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">✈️</div>
+                <h1 class="auth-title">Welcome Back!</h1>
+                <p class="auth-subtitle">Sign in to continue your gaming adventure</p>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" 
-                       placeholder="Enter your password" required>
-            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="phoneNumber" class="form-label">
+                        <i class="bi bi-phone"></i>Phone Number
+                    </label>
+                    <input type="tel" id="phoneNumber" class="form-control" 
+                           placeholder="0712345678 or +254712345678" 
+                           autocomplete="tel" required>
+                    <div class="help-text">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Enter your registered phone number</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="bi bi-lock"></i>Password
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" class="form-control" 
+                               placeholder="Enter your password" 
+                               autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Sign In</span>
+                </button>
+            </form>
             
-            <button type="submit" class="btn-submit" id="loginBtn">
-                LOGIN
-            </button>
-        </form>
-        
-        <div class="auth-link">
-            Don't have an account? <a href="{% url 'aviator:register' %}">Register here</a>
+            <div class="auth-link">
+                Don't have an account? <a href="{% url 'aviator:register' %}">Create one now</a>
+            </div>
         </div>
     </div>
 </div>
@@ -134,6 +306,23 @@
 
 {% block extra_js %}
 <script>
+    console.log('🔐 Login page initialized');
+    
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+            console.log('👁️ Password visible');
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+            console.log('🔒 Password hidden');
+        }
+    }
+    
     async function handleLogin(event) {
         event.preventDefault();
         
@@ -141,24 +330,61 @@
         const password = document.getElementById('password').value;
         const loginBtn = document.getElementById('loginBtn');
         
+        console.log('🚀 Login attempt for:', phoneNumber);
+        
+        // Validate inputs
+        if (!phoneNumber || phoneNumber.length < 10) {
+            showToast('Please enter a valid phone number', 'error');
+            return;
+        }
+        
+        if (!password || password.length < 6) {
+            showToast('Password must be at least 6 characters', 'error');
+            return;
+        }
+        
+        // Disable button and show loading
         loginBtn.disabled = true;
-        loginBtn.textContent = 'LOGGING IN...';
+        const originalHTML = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<div style="width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite;"></div><span>Signing In...</span>';
         
-        const result = await apiCall('{% url "aviator:login" %}', 'POST', {
-            phone_number: phoneNumber,
-            password: password
-        });
-        
-        if (result.success) {
-            showToast('Login successful!', 'success');
-            setTimeout(() => {
-                window.location.href = '{% url "aviator:game" %}';
-            }, 1000);
-        } else {
-            showToast(result.message, 'error');
+        try {
+            const result = await apiCall('{% url "aviator:login" %}', 'POST', {
+                phone_number: phoneNumber,
+                password: password
+            });
+            
+            console.log('📥 Login response:', result);
+            
+            if (result.success) {
+                showToast('✅ Login successful! Redirecting...', 'success');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '{% url "aviator:game" %}';
+                }, 1000);
+            } else {
+                console.error('❌ Login failed:', result.message);
+                showToast(result.message || 'Invalid credentials', 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = originalHTML;
+            }
+        } catch (error) {
+            console.error('💥 Login error:', error);
+            showToast('Network error. Please try again.', 'error');
             loginBtn.disabled = false;
-            loginBtn.textContent = 'LOGIN';
+            loginBtn.innerHTML = originalHTML;
         }
     }
+    
+    // Add spinner animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 {% endblock %}
