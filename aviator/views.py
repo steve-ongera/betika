@@ -153,19 +153,47 @@ def game_view(request):
 @require_http_methods(["GET"])
 def get_user_balance(request):
     """Get current user balance"""
-    user = request.user
-    return JsonResponse({
-        'success': True,
-        'balance': float(user.balance),
-        'bonus_balance': float(user.bonus_balance),
-        'total_balance': float(user.get_total_balance())
-    })
+    try:
+        user = request.user
+        return JsonResponse({
+            'success': True,
+            'balance': float(user.balance),
+            'bonus_balance': float(user.bonus_balance),
+            'total_balance': float(user.balance + user.bonus_balance)
+        })
+    except Exception as e:
+        print(f"Error in get_user_balance: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
 
+
+
+# Fixed Game Views - Add this to your views.py file
+# Replace the existing game-related views with these fixed versions
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from decimal import Decimal
+import json
+import uuid
+
+from .models import User, GameRound, Bet, Transaction, ChatMessage, Rain, UserStatistics
+
+
+def generate_reference():
+    """Generate unique transaction reference"""
+    return f"TXN{uuid.uuid4().hex[:12].upper()}"
 
 @login_required
 @require_http_methods(["GET"])
 def get_current_round(request):
-    """Get current active game round"""
+    """Get current active game round with all bets"""
     try:
         current_round = GameRound.objects.filter(
             Q(status='waiting') | Q(status='flying')
@@ -177,8 +205,12 @@ def get_current_round(request):
                 game_round=current_round,
                 status__in=['pending', 'active']
             ).select_related('user').values(
-                'user__phone_number', 'amount', 'cashout_multiplier', 
-                'status', 'auto_cashout'
+                'id',
+                'user__phone_number', 
+                'amount', 
+                'cashout_multiplier', 
+                'status', 
+                'auto_cashout'
             )
             
             return JsonResponse({
@@ -198,32 +230,43 @@ def get_current_round(request):
                 'round': None
             })
     except Exception as e:
+        print(f"Error in get_current_round: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
-            'message': str(e)
+            'message': f'Error: {str(e)}'
         }, status=500)
+
 
 
 @login_required
 @require_http_methods(["GET"])
 def get_round_history(request):
     """Get game round history"""
-    limit = int(request.GET.get('limit', 50))
-    
-    rounds = GameRound.objects.filter(
-        status='crashed'
-    ).order_by('-round_number')[:limit]
-    
-    history = [{
-        'round_number': r.round_number,
-        'multiplier': float(r.multiplier) if r.multiplier else 0,
-        'end_time': r.end_time.isoformat() if r.end_time else None
-    } for r in rounds]
-    
-    return JsonResponse({
-        'success': True,
-        'history': history
-    })
+    try:
+        limit = int(request.GET.get('limit', 15))
+        
+        rounds = GameRound.objects.filter(
+            status='crashed'
+        ).order_by('-round_number')[:limit]
+        
+        history = [{
+            'round_number': r.round_number,
+            'multiplier': float(r.multiplier) if r.multiplier else 0,
+            'end_time': r.end_time.isoformat() if r.end_time else None
+        } for r in rounds]
+        
+        return JsonResponse({
+            'success': True,
+            'history': history
+        })
+    except Exception as e:
+        print(f"Error in get_round_history: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
 
 
 @login_required
@@ -251,10 +294,11 @@ def place_bet(request):
             }, status=400)
         
         # Check balance
-        if user.get_total_balance() < amount:
+        total_balance = user.balance + user.bonus_balance
+        if total_balance < amount:
             return JsonResponse({
                 'success': False,
-                'message': 'Insufficient balance'
+                'message': f'Insufficient balance. You have {total_balance} KES'
             }, status=400)
         
         # Get current round
@@ -262,10 +306,10 @@ def place_bet(request):
         if not current_round:
             return JsonResponse({
                 'success': False,
-                'message': 'No active round to place bet'
+                'message': 'No active round available. Please wait for next round.'
             }, status=400)
         
-        # Check if user already has active bet
+        # Check if user already has active bet in this round
         existing_bet = Bet.objects.filter(
             user=user,
             game_round=current_round,
@@ -279,7 +323,7 @@ def place_bet(request):
             }, status=400)
         
         # Deduct from balance
-        balance_before = user.get_total_balance()
+        balance_before = total_balance
         if user.bonus_balance >= amount:
             user.bonus_balance -= amount
         elif user.balance >= amount:
@@ -287,7 +331,7 @@ def place_bet(request):
         else:
             # Use both balances
             remaining = amount - user.bonus_balance
-            user.bonus_balance = 0
+            user.bonus_balance = Decimal('0.00')
             user.balance -= remaining
         
         user.save()
@@ -310,14 +354,21 @@ def place_bet(request):
             reference=generate_reference(),
             description=f'Bet on round {current_round.round_number}',
             balance_before=balance_before,
-            balance_after=user.get_total_balance()
+            balance_after=user.balance + user.bonus_balance
         )
         
         # Update statistics
-        stats = user.statistics
-        stats.total_bets += 1
-        stats.total_wagered += amount
-        stats.save()
+        try:
+            stats = user.statistics
+            stats.total_bets += 1
+            stats.total_wagered += amount
+            stats.save()
+        except UserStatistics.DoesNotExist:
+            UserStatistics.objects.create(
+                user=user,
+                total_bets=1,
+                total_wagered=amount
+            )
         
         return JsonResponse({
             'success': True,
@@ -330,84 +381,151 @@ def place_bet(request):
             },
             'balance': float(user.balance),
             'bonus_balance': float(user.bonus_balance),
-            'total_balance': float(user.get_total_balance())
+            'total_balance': float(user.balance + user.bonus_balance)
         })
         
-    except Exception as e:
+    except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'message': str(e)
+            'message': 'Invalid request data'
+        }, status=400)
+    except Exception as e:
+        print(f"Error in place_bet: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error placing bet: {str(e)}'
         }, status=500)
 
 
 @login_required
 @require_http_methods(["POST"])
 def cashout_bet(request):
-    """Cashout active bet"""
+    """Cashout active bet - FIXED VERSION"""
     try:
         data = json.loads(request.body)
         bet_id = data.get('bet_id')
-        current_multiplier = Decimal(str(data.get('multiplier')))
+        current_multiplier = Decimal(str(data.get('multiplier', 1.00)))
         
         user = request.user
         
-        # Get bet
-        bet = get_object_or_404(Bet, id=bet_id, user=user, status='active')
+        # Validate bet_id
+        if not bet_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bet ID is required'
+            }, status=400)
+        
+        # Get bet - must belong to user and be active
+        try:
+            bet = Bet.objects.select_related('game_round').get(
+                id=bet_id, 
+                user=user, 
+                status__in=['pending', 'active']
+            )
+        except Bet.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bet not found or already cashed out'
+            }, status=404)
         
         # Check if round is still flying
         if bet.game_round.status != 'flying':
+            # Update bet status to lost if round crashed
+            if bet.game_round.status == 'crashed':
+                bet.status = 'lost'
+                bet.save()
+            
             return JsonResponse({
                 'success': False,
-                'message': 'Round has ended'
+                'message': 'Round has ended. Cannot cash out.'
             }, status=400)
+        
+        # Validate multiplier is reasonable
+        if current_multiplier < 1.00:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid multiplier'
+            }, status=400)
+        
+        # Check if multiplier matches current round multiplier (with small tolerance)
+        round_multiplier = bet.game_round.multiplier or Decimal('1.00')
+        if abs(current_multiplier - round_multiplier) > Decimal('0.10'):
+            # Use the round's current multiplier
+            current_multiplier = round_multiplier
         
         # Calculate payout
         bet.cashout_multiplier = current_multiplier
-        bet.payout = bet.calculate_payout()
+        payout = bet.amount * current_multiplier
+        bet.payout = payout
         bet.status = 'won'
         bet.save()
         
-        # Add to balance
-        balance_before = user.get_total_balance()
-        user.balance += Decimal(str(bet.payout))
+        # Add to user balance
+        balance_before = user.balance + user.bonus_balance
+        user.balance += payout
         user.save()
         
-        # Record transaction
+        # Record win transaction
         Transaction.objects.create(
             user=user,
             transaction_type='win',
-            amount=Decimal(str(bet.payout)),
+            amount=payout,
             status='completed',
             reference=generate_reference(),
-            description=f'Win from round {bet.game_round.round_number}',
+            description=f'Win from round {bet.game_round.round_number} at {current_multiplier}x',
             balance_before=balance_before,
-            balance_after=user.get_total_balance()
+            balance_after=user.balance + user.bonus_balance
         )
         
-        # Update statistics
-        stats = user.statistics
-        stats.total_wins += 1
-        stats.total_won += Decimal(str(bet.payout))
-        if bet.payout > stats.biggest_win:
-            stats.biggest_win = bet.payout
-        if current_multiplier > stats.biggest_multiplier:
-            stats.biggest_multiplier = current_multiplier
-        stats.calculate_win_rate()
-        stats.save()
+        # Update user statistics
+        try:
+            stats = user.statistics
+            stats.total_wins += 1
+            stats.total_won += payout
+            if payout > stats.biggest_win:
+                stats.biggest_win = payout
+            if current_multiplier > stats.biggest_multiplier:
+                stats.biggest_multiplier = current_multiplier
+            stats.calculate_win_rate()
+            stats.save()
+        except UserStatistics.DoesNotExist:
+            UserStatistics.objects.create(
+                user=user,
+                total_wins=1,
+                total_won=payout,
+                biggest_win=payout,
+                biggest_multiplier=current_multiplier
+            )
         
         return JsonResponse({
             'success': True,
             'message': 'Cashout successful',
-            'payout': float(bet.payout),
+            'payout': float(payout),
             'multiplier': float(current_multiplier),
             'balance': float(user.balance),
-            'total_balance': float(user.get_total_balance())
+            'bonus_balance': float(user.bonus_balance),
+            'total_balance': float(user.balance + user.bonus_balance)
         })
         
-    except Exception as e:
+    except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'message': str(e)
+            'message': 'Invalid request data'
+        }, status=400)
+    except ValueError as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Invalid data format: {str(e)}'
+        }, status=400)
+    except Exception as e:
+        print(f"Error in cashout_bet: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Cashout failed: {str(e)}'
         }, status=500)
 
 

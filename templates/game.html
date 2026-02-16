@@ -138,24 +138,25 @@
     .status-flying { color: var(--success-color); }
     .status-crashed { color: var(--danger-color); }
     
-    /* Round History - Compact on Mobile */
+    /* Round History - Super Compact and Tiny */
     .round-history {
         position: absolute;
         top: 1rem;
         right: 1rem;
-        background: rgba(0,0,0,0.8);
-        padding: 0.5rem;
-        border-radius: 8px;
+        background: rgba(0,0,0,0.9);
+        padding: 0.35rem;
+        border-radius: 6px;
         backdrop-filter: blur(10px);
         z-index: 20;
         border: 1px solid var(--border-color);
+        max-width: 110px;
         transition: all 0.3s ease;
     }
     
     @media (min-width: 768px) {
         .round-history {
-            max-width: 500px;
-            padding: 0.75rem;
+            max-width: 130px;
+            padding: 0.4rem;
         }
     }
     
@@ -163,10 +164,16 @@
         .round-history {
             top: 0.5rem;
             right: 0.5rem;
-            padding: 0.4rem;
-            max-width: 120px;
+            padding: 0.3rem;
+            max-width: 95px;
         }
-        
+    }
+    
+    .round-history.expanded {
+        max-width: 280px;
+    }
+    
+    @media (max-width: 576px) {
         .round-history.expanded {
             max-width: calc(100% - 1rem);
             left: 0.5rem;
@@ -175,45 +182,67 @@
     }
     
     .history-header {
-        display: none;
+        display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.3rem;
+        margin-bottom: 0.3rem;
+        padding-bottom: 0.25rem;
         border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .history-header span {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
     
     @media (max-width: 576px) {
-        .history-header {
-            display: flex;
-        }
-        
         .history-header span {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-size: 0.6rem;
         }
-        
-        .history-toggle {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            cursor: pointer;
-            font-size: 0.85rem;
-            padding: 0;
-        }
+    }
+    
+    .history-toggle {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        cursor: pointer;
+        font-size: 0.75rem;
+        padding: 0;
+        transition: transform 0.3s ease;
+    }
+    
+    .history-toggle.expanded {
+        transform: rotate(180deg);
     }
     
     .history-items {
-        display: flex;
-        gap: 0.4rem;
-        overflow-x: auto;
-        padding: 0.25rem 0;
-        scrollbar-width: thin;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.25rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .round-history.expanded .history-items {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 0.2rem 0;
+    }
+    
+    @media (min-width: 768px) {
+        .round-history.expanded .history-items {
+            grid-template-columns: repeat(4, 1fr);
+        }
     }
     
     .history-items::-webkit-scrollbar {
-        height: 3px;
+        width: 3px;
     }
     
     .history-items::-webkit-scrollbar-thumb {
@@ -221,73 +250,58 @@
         border-radius: 2px;
     }
     
-    @media (max-width: 576px) {
-        .history-items {
-            gap: 0.3rem;
-            padding: 0.2rem 0;
-        }
-        
-        .round-history:not(.expanded) .history-items {
-            max-width: 100px;
-        }
+    .history-preview {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: nowrap;
+        overflow: hidden;
+    }
+    
+    .round-history.expanded .history-preview {
+        display: none;
     }
     
     .history-item {
-        min-width: 50px;
-        padding: 0.4rem 0.5rem;
-        border-radius: 6px;
+        min-width: 28px;
+        padding: 0.2rem 0.25rem;
+        border-radius: 4px;
         text-align: center;
         font-weight: bold;
-        font-size: 0.75rem;
+        font-size: 0.55rem;
         white-space: nowrap;
         flex-shrink: 0;
+        line-height: 1.2;
     }
     
     @media (min-width: 768px) {
         .history-item {
-            min-width: 55px;
-            font-size: 0.85rem;
+            min-width: 32px;
+            padding: 0.25rem 0.3rem;
+            font-size: 0.6rem;
         }
     }
     
-    @media (max-width: 576px) {
-        .history-item {
-            min-width: 38px;
-            padding: 0.3rem 0.4rem;
-            font-size: 0.65rem;
-        }
-    }
+    .history-item.low { background-color: #d32f2f; color: white; }
+    .history-item.medium { background-color: #f57c00; color: white; }
+    .history-item.high { background-color: #388e3c; color: white; }
     
-    .history-item.low { background-color: #d32f2f; }
-    .history-item.medium { background-color: #f57c00; }
-    .history-item.high { background-color: #388e3c; }
-    
-    /* Mobile Layout Order - Betting Panel After Game Canvas */
+    /* Mobile Layout - Betting Panel Right After Game */
     @media (max-width: 991px) {
-        .game-container > div:first-child {
-            order: 1;
+        .game-container {
+            display: flex;
+            flex-direction: column;
         }
         
-        .game-container > div:last-child {
-            order: 2;
+        .game-canvas-wrapper {
+            order: 1;
         }
         
         .betting-panel {
-            order: 1;
-        }
-        
-        .active-bets {
             order: 2;
         }
         
-        .chat-section {
+        .sidebar-extras {
             order: 3;
-        }
-        
-        .game-container > div:last-child {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
         }
     }
     
@@ -297,6 +311,12 @@
         border-radius: 12px;
         padding: 1rem;
         border: 2px solid var(--border-color);
+    }
+    
+    @media (max-width: 991px) {
+        .betting-panel {
+            margin-bottom: 1rem;
+        }
     }
     
     @media (max-width: 576px) {
@@ -422,6 +442,22 @@
         background: linear-gradient(135deg, var(--warning-color), #ffb74d);
         color: white;
         animation: pulse-btn 1s infinite;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+    }
+    
+    .cashout-amount {
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: #fff;
+    }
+    
+    @media (max-width: 576px) {
+        .cashout-amount {
+            font-size: 1.1rem;
+        }
     }
     
     @keyframes pulse-btn {
@@ -624,7 +660,7 @@
 <div class="container-fluid">
     <div class="game-container">
         <!-- Main Game Canvas -->
-        <div>
+        <div class="game-canvas-wrapper">
             <div class="game-canvas" id="gameCanvas">
                 <!-- Game Status -->
                 <div class="game-status">
@@ -634,16 +670,19 @@
                     <small class="text-secondary">Round #<span id="currentRound">1</span></small>
                 </div>
                 
-                <!-- Round History (Top Right) - Collapsible on Mobile -->
+                <!-- Round History (Top Right) - Compact with Dropdown -->
                 <div class="round-history" id="roundHistory">
-                    <div class="history-header">
+                    <div class="history-header" onclick="toggleHistory()">
                         <span>History</span>
                         <button class="history-toggle" id="historyToggle">
                             <i class="bi bi-chevron-down"></i>
                         </button>
                     </div>
+                    <div class="history-preview" id="historyPreview">
+                        <!-- Last 5 in preview -->
+                    </div>
                     <div class="history-items" id="historyItems">
-                        <!-- Populated by JS -->
+                        <!-- All 15 when expanded -->
                     </div>
                 </div>
                 
@@ -654,26 +693,8 @@
                 <img src="{% static 'images/plane.svg' %}" class="plane-svg" id="planeIcon" alt="Plane">
             </div>
             
-            <!-- Chat Section (Below Game on Mobile) -->
-            <div class="chat-section mt-3">
-                <h6 class="mb-2">
-                    <i class="bi bi-chat-dots-fill"></i> Live Chat
-                </h6>
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="input-group input-group-sm">
-                    <input type="text" id="chatInput" class="form-control form-control-sm" 
-                           placeholder="Message..." maxlength="500">
-                    <button class="btn btn-primary" onclick="sendMessage()">
-                        <i class="bi bi-send-fill"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div>
-            <!-- Betting Panel -->
-            <div class="betting-panel mb-3">
+            <!-- Betting Panel (Below Game on Mobile) -->
+            <div class="betting-panel mt-3 d-lg-none">
                 <h6 class="mb-3">
                     <i class="bi bi-coin"></i> Place Bet
                 </h6>
@@ -726,12 +747,99 @@
                 </div>
             </div>
             
+            <!-- Chat Section (Below Betting on Mobile) -->
+            <div class="chat-section mt-3 d-lg-none">
+                <h6 class="mb-2">
+                    <i class="bi bi-chat-dots-fill"></i> Live Chat
+                </h6>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="chatInput" class="form-control form-control-sm" 
+                           placeholder="Message..." maxlength="500">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar (Desktop Only) -->
+        <div class="sidebar-extras d-none d-lg-block">
+            <!-- Betting Panel -->
+            <div class="betting-panel mb-3">
+                <h6 class="mb-3">
+                    <i class="bi bi-coin"></i> Place Bet
+                </h6>
+                
+                <!-- Bet Amount -->
+                <label class="form-label small text-secondary">Amount (KES)</label>
+                <div class="amount-control mb-2">
+                    <button class="amount-btn" onclick="decreaseAmount()">-</button>
+                    <input type="number" id="betAmountDesktop" class="amount-input" value="50" min="10" max="50000">
+                    <button class="amount-btn" onclick="increaseAmount()">+</button>
+                </div>
+                
+                <!-- Quick Amounts -->
+                <div class="quick-amounts mb-3">
+                    <div class="quick-amount" onclick="setAmount(50)">50</div>
+                    <div class="quick-amount" onclick="setAmount(100)">100</div>
+                    <div class="quick-amount" onclick="setAmount(500)">500</div>
+                    <div class="quick-amount" onclick="setAmount(1000)">1K</div>
+                </div>
+                
+                <!-- Auto Cashout -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="autoCashoutEnabledDesktop">
+                    <label class="form-check-label small" for="autoCashoutEnabledDesktop">
+                        Auto cashout at
+                        <input type="number" id="autoCashoutAmountDesktop" class="form-control form-control-sm d-inline-block" 
+                               style="width: 70px;" value="2.00" min="1.01" step="0.01" disabled>x
+                    </label>
+                </div>
+                
+                <!-- Bet Button -->
+                <button class="bet-button place-bet" id="betButtonDesktop" onclick="placeBet()">
+                    <i class="bi bi-check-circle-fill"></i> PLACE BET
+                </button>
+                
+                <!-- Current Bet Info -->
+                <div id="currentBetInfoDesktop" style="display: none;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Bet:</span>
+                        <span id="activeBetAmountDesktop" class="text-success fw-bold">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Multiplier:</span>
+                        <span id="activeBetMultiplierDesktop" class="text-warning fw-bold">1.00x</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Win:</span>
+                        <span id="activeBetPotentialDesktop" class="text-success fw-bold">0</span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Active Bets -->
-            <div class="active-bets">
+            <div class="active-bets mb-3">
                 <h6 class="mb-2">
                     <i class="bi bi-people-fill"></i> Active Bets
                 </h6>
                 <div id="activeBetsList"></div>
+            </div>
+            
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <h6 class="mb-2">
+                    <i class="bi bi-chat-dots-fill"></i> Live Chat
+                </h6>
+                <div class="chat-messages" id="chatMessagesDesktop"></div>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="chatInputDesktop" class="form-control form-control-sm" 
+                           placeholder="Message..." maxlength="500">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -759,55 +867,94 @@
             currentMultiplier: 1.00,
             currentRound: null,
             activeBet: null,
-            roundHistory: []
+            roundHistory: [],
+            lastRoundId: null,
+            isCashingOut: false
         };
         
         let updateInterval = null;
         let planePosition = { x: 5, y: 5, angle: 0 };
         
-        // History Toggle for Mobile
-        const historyToggle = document.getElementById('historyToggle');
-        const roundHistory = document.getElementById('roundHistory');
+        // History Toggle
+        window.toggleHistory = function() {
+            const roundHistory = document.getElementById('roundHistory');
+            const toggle = document.getElementById('historyToggle');
+            const icon = toggle.querySelector('i');
+            
+            roundHistory.classList.toggle('expanded');
+            toggle.classList.toggle('expanded');
+            
+            if (roundHistory.classList.contains('expanded')) {
+                icon.className = 'bi bi-chevron-up';
+            } else {
+                icon.className = 'bi bi-chevron-down';
+            }
+        };
         
-        if (historyToggle) {
-            historyToggle.addEventListener('click', function() {
-                roundHistory.classList.toggle('expanded');
-                const icon = this.querySelector('i');
-                if (roundHistory.classList.contains('expanded')) {
-                    icon.className = 'bi bi-chevron-up';
-                } else {
-                    icon.className = 'bi bi-chevron-down';
-                }
-            });
-        }
-        
-        // Auto-cashout checkbox
-        document.getElementById('autoCashoutEnabled').addEventListener('change', function() {
+        // Sync desktop and mobile auto-cashout checkboxes
+        document.getElementById('autoCashoutEnabled')?.addEventListener('change', function() {
             document.getElementById('autoCashoutAmount').disabled = !this.checked;
+            const desktopCheckbox = document.getElementById('autoCashoutEnabledDesktop');
+            if (desktopCheckbox) {
+                desktopCheckbox.checked = this.checked;
+                document.getElementById('autoCashoutAmountDesktop').disabled = !this.checked;
+            }
+        });
+        
+        document.getElementById('autoCashoutEnabledDesktop')?.addEventListener('change', function() {
+            document.getElementById('autoCashoutAmountDesktop').disabled = !this.checked;
+            const mobileCheckbox = document.getElementById('autoCashoutEnabled');
+            if (mobileCheckbox) {
+                mobileCheckbox.checked = this.checked;
+                document.getElementById('autoCashoutAmount').disabled = !this.checked;
+            }
         });
         
         // Bet Amount Controls
         window.decreaseAmount = function() {
-            const input = document.getElementById('betAmount');
-            let value = parseInt(input.value) || 50;
-            input.value = Math.max(10, value - 10);
+            const mobileInput = document.getElementById('betAmount');
+            const desktopInput = document.getElementById('betAmountDesktop');
+            let value = parseInt(mobileInput?.value || desktopInput?.value || 50);
+            const newValue = Math.max(10, value - 10);
+            if (mobileInput) mobileInput.value = newValue;
+            if (desktopInput) desktopInput.value = newValue;
         };
         
         window.increaseAmount = function() {
-            const input = document.getElementById('betAmount');
-            let value = parseInt(input.value) || 50;
-            input.value = Math.min(50000, value + 10);
+            const mobileInput = document.getElementById('betAmount');
+            const desktopInput = document.getElementById('betAmountDesktop');
+            let value = parseInt(mobileInput?.value || desktopInput?.value || 50);
+            const newValue = Math.min(50000, value + 10);
+            if (mobileInput) mobileInput.value = newValue;
+            if (desktopInput) desktopInput.value = newValue;
         };
         
         window.setAmount = function(amount) {
-            document.getElementById('betAmount').value = amount;
+            const mobileInput = document.getElementById('betAmount');
+            const desktopInput = document.getElementById('betAmountDesktop');
+            if (mobileInput) mobileInput.value = amount;
+            if (desktopInput) desktopInput.value = amount;
         };
         
         // Place Bet
         window.placeBet = async function() {
-            const amount = document.getElementById('betAmount').value;
-            const autoCashoutEnabled = document.getElementById('autoCashoutEnabled').checked;
-            const autoCashout = autoCashoutEnabled ? document.getElementById('autoCashoutAmount').value : null;
+            // Don't allow betting if already have active bet
+            if (gameState.activeBet) {
+                showToast('You already have an active bet', 'warning');
+                return;
+            }
+            
+            const mobileInput = document.getElementById('betAmount');
+            const desktopInput = document.getElementById('betAmountDesktop');
+            const amount = mobileInput?.value || desktopInput?.value;
+            
+            const mobileAutoCheckbox = document.getElementById('autoCashoutEnabled');
+            const desktopAutoCheckbox = document.getElementById('autoCashoutEnabledDesktop');
+            const autoCashoutEnabled = mobileAutoCheckbox?.checked || desktopAutoCheckbox?.checked;
+            
+            const mobileAutoAmount = document.getElementById('autoCashoutAmount');
+            const desktopAutoAmount = document.getElementById('autoCashoutAmountDesktop');
+            const autoCashout = autoCashoutEnabled ? (mobileAutoAmount?.value || desktopAutoAmount?.value) : null;
             
             if (amount < 10) {
                 showToast('Minimum bet is 10 KES', 'error');
@@ -821,7 +968,7 @@
             
             if (result.success) {
                 gameState.activeBet = result.bet;
-                showToast('Bet placed!', 'success');
+                showToast('Bet placed successfully!', 'success');
                 updateBetButton();
                 showCurrentBetInfo();
                 await updateBalance();
@@ -830,76 +977,191 @@
             }
         };
         
-        // Cashout
+        // Cashout - INSTANT AND SMOOTH
         window.cashout = async function() {
-            if (!gameState.activeBet) return;
+            if (!gameState.activeBet || gameState.isCashingOut) return;
             
-            const result = await apiCall('{% url "aviator:api_cashout" %}', 'POST', {
-                bet_id: gameState.activeBet.id,
-                multiplier: gameState.currentMultiplier
+            // Prevent double cashout
+            gameState.isCashingOut = true;
+            
+            // Disable button immediately for instant feedback
+            const buttons = [document.getElementById('betButton'), document.getElementById('betButtonDesktop')];
+            buttons.forEach(button => {
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> CASHING OUT...';
+                }
             });
             
-            if (result.success) {
-                showToast(`Cashed out ${result.multiplier}x! Won ${result.payout} KES`, 'success');
-                gameState.activeBet = null;
+            try {
+                const result = await apiCall('{% url "aviator:api_cashout" %}', 'POST', {
+                    bet_id: gameState.activeBet.id,
+                    multiplier: gameState.currentMultiplier
+                });
+                
+                if (result.success) {
+                    showToast(`🎉 Cashed out ${result.multiplier}x! Won ${formatCurrency(result.payout)} KES`, 'success');
+                    
+                    // Clear active bet immediately
+                    gameState.activeBet = null;
+                    gameState.isCashingOut = false;
+                    
+                    // Update UI instantly
+                    hideCurrentBetInfo();
+                    updateBetButton();
+                    await updateBalance();
+                    
+                    // Reset to default amount for next bet
+                    resetBetAmount();
+                } else {
+                    showToast(result.message, 'error');
+                    gameState.isCashingOut = false;
+                    updateBetButton();
+                }
+            } catch (error) {
+                showToast('Cashout failed. Please try again.', 'error');
+                gameState.isCashingOut = false;
                 updateBetButton();
-                hideCurrentBetInfo();
-                await updateBalance();
-            } else {
-                showToast(result.message, 'error');
             }
         };
         
+        // Reset bet amount to default
+        function resetBetAmount() {
+            const defaultAmount = 50;
+            const mobileInput = document.getElementById('betAmount');
+            const desktopInput = document.getElementById('betAmountDesktop');
+            if (mobileInput) mobileInput.value = defaultAmount;
+            if (desktopInput) desktopInput.value = defaultAmount;
+        }
+        
         function updateBetButton() {
-            const button = document.getElementById('betButton');
+            const buttons = [document.getElementById('betButton'), document.getElementById('betButtonDesktop')];
             
-            if (gameState.activeBet && gameState.status === 'flying') {
-                button.innerHTML = '<i class="bi bi-cash-stack"></i> CASHOUT';
-                button.className = 'bet-button cashout';
-                button.onclick = cashout;
-                button.disabled = false;
-            } else if (gameState.status === 'waiting') {
-                button.innerHTML = '<i class="bi bi-check-circle-fill"></i> PLACE BET';
-                button.className = 'bet-button place-bet';
-                button.onclick = placeBet;
-                button.disabled = gameState.activeBet !== null;
-            } else {
-                button.disabled = true;
-            }
+            buttons.forEach(button => {
+                if (!button) return;
+                
+                // If cashing out, keep disabled
+                if (gameState.isCashingOut) {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> CASHING OUT...';
+                    return;
+                }
+                
+                if (gameState.activeBet && gameState.status === 'flying') {
+                    // Show cashout button with amount
+                    const potentialWin = (gameState.activeBet.amount * gameState.currentMultiplier).toFixed(2);
+                    button.innerHTML = `
+                        <div><i class="bi bi-cash-stack"></i> CASHOUT</div>
+                        <div class="cashout-amount">${formatCurrency(potentialWin)} KES</div>
+                    `;
+                    button.className = 'bet-button cashout';
+                    button.onclick = cashout;
+                    button.disabled = false;
+                } else if (gameState.status === 'waiting') {
+                    // Show place bet button
+                    button.innerHTML = '<i class="bi bi-check-circle-fill"></i> PLACE BET';
+                    button.className = 'bet-button place-bet';
+                    button.onclick = placeBet;
+                    button.disabled = gameState.activeBet !== null;
+                } else {
+                    // Crashed or other status
+                    button.disabled = true;
+                    if (gameState.status === 'crashed') {
+                        button.innerHTML = '<i class="bi bi-x-circle"></i> ROUND ENDED';
+                        button.className = 'bet-button';
+                    }
+                }
+            });
         }
         
         function showCurrentBetInfo() {
-            document.getElementById('currentBetInfo').style.display = 'block';
-            document.getElementById('activeBetAmount').textContent = formatCurrency(gameState.activeBet.amount) + ' KES';
+            const infos = [
+                { container: 'currentBetInfo', amount: 'activeBetAmount', mult: 'activeBetMultiplier', potential: 'activeBetPotential' },
+                { container: 'currentBetInfoDesktop', amount: 'activeBetAmountDesktop', mult: 'activeBetMultiplierDesktop', potential: 'activeBetPotentialDesktop' }
+            ];
+            
+            infos.forEach(info => {
+                const container = document.getElementById(info.container);
+                if (container) {
+                    container.style.display = 'block';
+                    const amountEl = document.getElementById(info.amount);
+                    if (amountEl) amountEl.textContent = formatCurrency(gameState.activeBet.amount) + ' KES';
+                }
+            });
             updatePotentialWin();
         }
         
         function hideCurrentBetInfo() {
-            document.getElementById('currentBetInfo').style.display = 'none';
+            const containers = ['currentBetInfo', 'currentBetInfoDesktop'];
+            containers.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
         }
         
         function updatePotentialWin() {
             if (!gameState.activeBet) return;
             const potential = gameState.activeBet.amount * gameState.currentMultiplier;
-            document.getElementById('activeBetMultiplier').textContent = gameState.currentMultiplier.toFixed(2) + 'x';
-            document.getElementById('activeBetPotential').textContent = formatCurrency(potential) + ' KES';
+            
+            const updates = [
+                { mult: 'activeBetMultiplier', potential: 'activeBetPotential' },
+                { mult: 'activeBetMultiplierDesktop', potential: 'activeBetPotentialDesktop' }
+            ];
+            
+            updates.forEach(update => {
+                const multEl = document.getElementById(update.mult);
+                const potentialEl = document.getElementById(update.potential);
+                if (multEl) multEl.textContent = gameState.currentMultiplier.toFixed(2) + 'x';
+                if (potentialEl) potentialEl.textContent = formatCurrency(potential) + ' KES';
+            });
         }
         
-        // Fetch current round
+        // Fetch current round with real-time updates
         async function fetchCurrentRound() {
             const result = await apiCall('{% url "aviator:api_current_round" %}');
             
             if (result.success && result.round) {
                 const round = result.round;
+                const previousStatus = gameState.status;
+                const previousRoundId = gameState.lastRoundId;
+                
                 gameState.currentRound = round;
                 gameState.status = round.status;
                 gameState.currentMultiplier = round.multiplier || 1.00;
+                gameState.lastRoundId = round.id;
+                
+                // Detect new round starting
+                if (previousRoundId && previousRoundId !== round.id && round.status === 'waiting') {
+                    // New round started - clear lost bet if exists
+                    if (gameState.activeBet) {
+                        showToast('❌ Bet lost. Place a new bet!', 'warning');
+                        gameState.activeBet = null;
+                        hideCurrentBetInfo();
+                        resetBetAmount();
+                    }
+                    
+                    // Refresh history
+                    await fetchRoundHistory();
+                }
+                
+                // Detect round crash
+                if (previousStatus === 'flying' && round.status === 'crashed') {
+                    if (gameState.activeBet && !gameState.isCashingOut) {
+                        // User didn't cash out in time
+                        showToast('💥 Plane flew away! Bet lost.', 'error');
+                        gameState.activeBet = null;
+                        hideCurrentBetInfo();
+                        resetBetAmount();
+                    }
+                }
                 
                 updateGameDisplay();
                 updateActiveBetsList(round.bets);
                 
+                // Auto cashout check
                 if (gameState.activeBet && gameState.activeBet.auto_cashout && 
-                    gameState.currentMultiplier >= gameState.activeBet.auto_cashout) {
+                    gameState.currentMultiplier >= gameState.activeBet.auto_cashout &&
+                    !gameState.isCashingOut && gameState.status === 'flying') {
                     await cashout();
                 }
             }
@@ -943,33 +1205,30 @@
         
         function animatePlane() {
             const planeElement = document.getElementById('planeIcon');
-            
-            // Professional slanting trajectory - smooth diagonal path
-            // Maps multiplier to position: 1.00x -> 10.00x over controlled path
             const mult = gameState.currentMultiplier;
             
-            // Normalize progress (1.0x to 10.0x range)
+            // Limit plane movement to reasonable multiplier range
+            // Plane reaches max position at 10x, stays there for higher multipliers
             const maxMultiplier = 10.0;
-            const progress = Math.min((mult - 1.0) / (maxMultiplier - 1.0), 1.0);
+            const cappedMult = Math.min(mult, maxMultiplier);
+            const progress = Math.min((cappedMult - 1.0) / (maxMultiplier - 1.0), 1.0);
             
-            // Diagonal path: bottom-left to top-right
-            // X: 5% to 75% (stays away from right edge)
-            // Y: 5% to 65% (stays away from top edge)
-            const startX = 5;
-            const endX = 75;
-            const startY = 5;
-            const endY = 65;
-            
-            // Add slight curve using easing function
+            // Smooth easing function
             const easeProgress = progress < 0.5 
                 ? 2 * progress * progress 
                 : 1 - Math.pow(-2 * progress + 2, 2) / 2;
             
+            // Diagonal path: bottom-left to upper-right, but not to edges
+            const startX = 5;
+            const endX = 65;  // Stop at 65% to avoid right edge
+            const startY = 5;
+            const endY = 55;  // Stop at 55% to avoid top edge
+            
             const x = startX + (endX - startX) * easeProgress;
             const y = startY + (endY - startY) * easeProgress;
             
-            // Angle: starts at 35deg, gradually increases to 50deg
-            const angle = 35 + (progress * 15);
+            // Plane angle: gentle upward tilt (35-45 degrees)
+            const angle = 35 + (progress * 10);
             
             planePosition = { x, y, angle };
             
@@ -980,7 +1239,7 @@
         
         // Fetch round history
         async function fetchRoundHistory() {
-            const result = await apiCall('{% url "aviator:api_round_history" %}?limit=20');
+            const result = await apiCall('{% url "aviator:api_round_history" %}?limit=15');
             if (result.success) {
                 gameState.roundHistory = result.history;
                 displayRoundHistory();
@@ -988,24 +1247,41 @@
         }
         
         function displayRoundHistory() {
-            const container = document.getElementById('historyItems');
-            container.innerHTML = '';
+            const previewContainer = document.getElementById('historyPreview');
+            const fullContainer = document.getElementById('historyItems');
             
-            gameState.roundHistory.forEach(round => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                
-                if (round.multiplier < 2) item.classList.add('low');
-                else if (round.multiplier < 5) item.classList.add('medium');
-                else item.classList.add('high');
-                
-                item.textContent = round.multiplier.toFixed(2) + 'x';
-                container.appendChild(item);
+            previewContainer.innerHTML = '';
+            fullContainer.innerHTML = '';
+            
+            // Show last 5 in preview
+            gameState.roundHistory.slice(0, 5).forEach(round => {
+                const item = createHistoryItem(round);
+                previewContainer.appendChild(item.cloneNode(true));
             });
+            
+            // Show all 15 in expanded view
+            gameState.roundHistory.forEach(round => {
+                const item = createHistoryItem(round);
+                fullContainer.appendChild(item);
+            });
+        }
+        
+        function createHistoryItem(round) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            if (round.multiplier < 2) item.classList.add('low');
+            else if (round.multiplier < 5) item.classList.add('medium');
+            else item.classList.add('high');
+            
+            item.textContent = round.multiplier.toFixed(2) + 'x';
+            return item;
         }
         
         function updateActiveBetsList(bets) {
             const container = document.getElementById('activeBetsList');
+            if (!container) return;
+            
             container.innerHTML = '';
             
             if (!bets || bets.length === 0) {
@@ -1032,34 +1308,48 @@
         async function loadChatMessages() {
             const result = await apiCall('{% url "aviator:api_chat_messages" %}?limit=30');
             if (result.success) {
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = '';
-                result.messages.forEach(msg => {
-                    const div = document.createElement('div');
-                    div.className = 'chat-message';
-                    div.innerHTML = `<span class="chat-user">${msg.user}:</span>${escapeHtml(msg.message)}`;
-                    container.appendChild(div);
+                const containers = ['chatMessages', 'chatMessagesDesktop'];
+                containers.forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    
+                    container.innerHTML = '';
+                    result.messages.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = 'chat-message';
+                        div.innerHTML = `<span class="chat-user">${msg.user}:</span>${escapeHtml(msg.message)}`;
+                        container.appendChild(div);
+                    });
+                    container.scrollTop = container.scrollHeight;
                 });
-                container.scrollTop = container.scrollHeight;
             }
         }
         
         window.sendMessage = async function() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
+            const mobileInput = document.getElementById('chatInput');
+            const desktopInput = document.getElementById('chatInputDesktop');
+            const input = mobileInput || desktopInput;
+            const message = input?.value.trim();
             if (!message) return;
             
             const result = await apiCall('{% url "aviator:api_send_message" %}', 'POST', { message });
             if (result.success) {
-                input.value = '';
+                if (mobileInput) mobileInput.value = '';
+                if (desktopInput) desktopInput.value = '';
                 await loadChatMessages();
             } else {
                 showToast(result.message, 'error');
             }
         };
         
-        document.getElementById('chatInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
+        // Enter key for chat
+        ['chatInput', 'chatInputDesktop'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') sendMessage();
+                });
+            }
         });
         
         // Check rains
@@ -1106,7 +1396,13 @@
             await loadChatMessages();
             await checkActiveRains();
             
+            // Fast updates for real-time odds (10 times per second)
             updateInterval = setInterval(fetchCurrentRound, 100);
+            
+            // Update history every 3 seconds
+            setInterval(fetchRoundHistory, 3000);
+            
+            // Chat and rain checks
             setInterval(loadChatMessages, 5000);
             setInterval(checkActiveRains, 10000);
         }
