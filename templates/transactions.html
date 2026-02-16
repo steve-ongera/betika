@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction History - Aviator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transaction-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .transaction-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .transaction-icon.deposit {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success-color);
+    }
+    
+    .transaction-icon.withdrawal {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: var(--warning-color);
+    }
+    
+    .transaction-icon.bet {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: var(--danger-color);
+    }
+    
+    .transaction-icon.win {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success-color);
+    }
+    
+    .transaction-icon.bonus,
+    .transaction-icon.rain {
+        background-color: rgba(255, 87, 34, 0.2);
+        color: var(--primary-color);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-completed {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success-color);
+    }
+    
+    .status-pending {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: var(--warning-color);
+    }
+    
+    .status-failed {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: var(--danger-color);
+    }
+    
+    .filter-tabs {
+        background-color: var(--card-bg);
+        border-radius: 10px;
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    
+    .filter-btn:hover {
+        background-color: var(--hover-bg);
+    }
+    
+    .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-color), #ff7043);
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .transaction-card {
+            padding: 0.75rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h4 class="mb-0">
+                <i class="bi bi-wallet2"></i> Transaction History
+            </h4>
+            <p class="text-secondary small mb-0">View all your transactions</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'aviator:deposit' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Deposit
+            </a>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="totalDeposits">0.00</div>
+            <div class="stat-label">Total Deposits</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalWithdrawals">0.00</div>
+            <div class="stat-label">Total Withdrawals</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalWins">0.00</div>
+            <div class="stat-label">Total Wins</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ user.balance|floatformat:2 }}</div>
+            <div class="stat-label">Current Balance</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">
+            <i class="bi bi-list-ul"></i> All
+        </button>
+        <button class="filter-btn" data-filter="deposit">
+            <i class="bi bi-arrow-down-circle"></i> Deposits
+        </button>
+        <button class="filter-btn" data-filter="withdrawal">
+            <i class="bi bi-arrow-up-circle"></i> Withdrawals
+        </button>
+        <button class="filter-btn" data-filter="bet">
+            <i class="bi bi-dice-5"></i> Bets
+        </button>
+        <button class="filter-btn" data-filter="win">
+            <i class="bi bi-trophy"></i> Wins
+        </button>
+    </div>
+    
+    <!-- Transactions List -->
+    <div id="transactionsList">
+        {% if page_obj %}
+            {% for transaction in page_obj %}
+            <div class="transaction-card" data-type="{{ transaction.transaction_type }}">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="transaction-icon {{ transaction.transaction_type }}">
+                            {% if transaction.transaction_type == 'deposit' %}
+                                <i class="bi bi-arrow-down-circle-fill"></i>
+                            {% elif transaction.transaction_type == 'withdrawal' %}
+                                <i class="bi bi-arrow-up-circle-fill"></i>
+                            {% elif transaction.transaction_type == 'bet' %}
+                                <i class="bi bi-dice-5-fill"></i>
+                            {% elif transaction.transaction_type == 'win' %}
+                                <i class="bi bi-trophy-fill"></i>
+                            {% elif transaction.transaction_type == 'bonus' %}
+                                <i class="bi bi-gift-fill"></i>
+                            {% elif transaction.transaction_type == 'rain' %}
+                                <i class="bi bi-cloud-rain-fill"></i>
+                            {% else %}
+                                <i class="bi bi-cash-coin"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <div class="fw-bold text-capitalize">{{ transaction.get_transaction_type_display }}</div>
+                        <div class="text-secondary small">{{ transaction.description }}</div>
+                        <div class="text-secondary small">
+                            <i class="bi bi-calendar3"></i> {{ transaction.created_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-auto text-end">
+                        <div class="fw-bold {% if transaction.transaction_type in 'deposit,win,bonus,rain' %}text-success{% else %}text-danger{% endif %}">
+                            {% if transaction.transaction_type in 'deposit,win,bonus,rain' %}+{% else %}-{% endif %}
+                            {{ transaction.amount|floatformat:2 }} KES
+                        </div>
+                        <span class="status-badge status-{{ transaction.status }}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                        {% if transaction.mpesa_receipt %}
+                        <div class="text-secondary small mt-1">
+                            <i class="bi bi-receipt"></i> {{ transaction.mpesa_receipt }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h5>No Transactions Yet</h5>
+                <p>Your transaction history will appear here</p>
+                <a href="{% url 'aviator:deposit' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Make Your First Deposit
+                </a>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calculate statistics
+    calculateStats();
+    
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const transactions = document.querySelectorAll('.transaction-card');
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active state
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter transactions
+            transactions.forEach(transaction => {
+                if (filter === 'all' || transaction.dataset.type === filter) {
+                    transaction.style.display = 'block';
+                } else {
+                    transaction.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    function calculateStats() {
+        let totalDeposits = 0;
+        let totalWithdrawals = 0;
+        let totalWins = 0;
+        
+        transactions.forEach(transaction => {
+            const type = transaction.dataset.type;
+            const amountText = transaction.querySelector('.col-auto.text-end .fw-bold').textContent;
+            const amount = parseFloat(amountText.replace(/[^0-9.-]+/g, ''));
+            
+            if (type === 'deposit') {
+                totalDeposits += amount;
+            } else if (type === 'withdrawal') {
+                totalWithdrawals += amount;
+            } else if (type === 'win') {
+                totalWins += amount;
+            }
+        });
+        
+        document.getElementById('totalDeposits').textContent = totalDeposits.toFixed(2);
+        document.getElementById('totalWithdrawals').textContent = totalWithdrawals.toFixed(2);
+        document.getElementById('totalWins').textContent = totalWins.toFixed(2);
+    }
+});
+</script>
+{% endblock %}

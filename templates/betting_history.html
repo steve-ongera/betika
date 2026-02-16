@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}Betting History - Aviator{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bet-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .bet-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .bet-card.won {
+        border-left: 4px solid var(--success-color);
+    }
+    
+    .bet-card.lost {
+        border-left: 4px solid var(--danger-color);
+    }
+    
+    .bet-card.pending,
+    .bet-card.active {
+        border-left: 4px solid var(--warning-color);
+    }
+    
+    .round-badge {
+        background-color: var(--dark-bg);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: bold;
+        color: var(--primary-color);
+        display: inline-block;
+    }
+    
+    .multiplier-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1.25rem;
+        display: inline-block;
+    }
+    
+    .multiplier-badge.low {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: var(--danger-color);
+    }
+    
+    .multiplier-badge.medium {
+        background-color: rgba(255, 152, 0, 0.2);
+        color: var(--warning-color);
+    }
+    
+    .multiplier-badge.high {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success-color);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-value.success {
+        color: var(--success-color);
+    }
+    
+    .stat-value.danger {
+        color: var(--danger-color);
+    }
+    
+    .stat-value.primary {
+        color: var(--primary-color);
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    .filter-tabs {
+        background-color: var(--card-bg);
+        border-radius: 10px;
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    
+    .filter-btn:hover {
+        background-color: var(--hover-bg);
+    }
+    
+    .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary-color), #ff7043);
+        color: white;
+    }
+    
+    .payout-amount {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .bet-card {
+            padding: 0.75rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .multiplier-badge {
+            font-size: 1rem;
+            padding: 0.4rem 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h4 class="mb-0">
+                <i class="bi bi-clock-history"></i> Betting History
+            </h4>
+            <p class="text-secondary small mb-0">Track all your bets and wins</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'aviator:game' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-controller"></i> Play Now
+            </a>
+        </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value primary" id="totalBets">0</div>
+            <div class="stat-label">Total Bets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value success" id="totalWins">0</div>
+            <div class="stat-label">Won Bets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value danger" id="totalLosses">0</div>
+            <div class="stat-label">Lost Bets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value success" id="totalWagered">0.00</div>
+            <div class="stat-label">Total Wagered</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value success" id="totalPayout">0.00</div>
+            <div class="stat-label">Total Payout</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="winRate" style="color: var(--warning-color);">0%</div>
+            <div class="stat-label">Win Rate</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">
+            <i class="bi bi-list-ul"></i> All
+        </button>
+        <button class="filter-btn" data-filter="won">
+            <i class="bi bi-check-circle"></i> Won
+        </button>
+        <button class="filter-btn" data-filter="lost">
+            <i class="bi bi-x-circle"></i> Lost
+        </button>
+        <button class="filter-btn" data-filter="pending">
+            <i class="bi bi-hourglass-split"></i> Pending
+        </button>
+        <button class="filter-btn" data-filter="active">
+            <i class="bi bi-play-circle"></i> Active
+        </button>
+    </div>
+    
+    <!-- Bets List -->
+    <div id="betsList">
+        {% if page_obj %}
+            {% for bet in page_obj %}
+            <div class="bet-card {{ bet.status }}" data-status="{{ bet.status }}">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-2 col-6">
+                        <div class="round-badge">
+                            <i class="bi bi-hash"></i>{{ bet.game_round.round_number }}
+                        </div>
+                        <div class="text-secondary small mt-1">
+                            {{ bet.created_at|date:"M d, H:i" }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2 col-6 text-md-center">
+                        <div class="text-secondary small">Bet Amount</div>
+                        <div class="fw-bold">{{ bet.amount|floatformat:2 }} KES</div>
+                    </div>
+                    
+                    <div class="col-md-2 col-6 text-md-center">
+                        <div class="text-secondary small">Multiplier</div>
+                        {% if bet.cashout_multiplier %}
+                            {% if bet.cashout_multiplier < 2 %}
+                                <div class="multiplier-badge low">{{ bet.cashout_multiplier|floatformat:2 }}x</div>
+                            {% elif bet.cashout_multiplier < 5 %}
+                                <div class="multiplier-badge medium">{{ bet.cashout_multiplier|floatformat:2 }}x</div>
+                            {% else %}
+                                <div class="multiplier-badge high">{{ bet.cashout_multiplier|floatformat:2 }}x</div>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-secondary">-</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-2 col-6 text-md-center">
+                        <div class="text-secondary small">Payout</div>
+                        {% if bet.payout > 0 %}
+                            <div class="payout-amount text-success">
+                                {{ bet.payout|floatformat:2 }} KES
+                            </div>
+                        {% else %}
+                            <div class="payout-amount text-secondary">-</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-2 col-6 text-md-center">
+                        <div class="text-secondary small">Profit/Loss</div>
+                        {% if bet.status == 'won' %}
+                            <div class="fw-bold text-success">
+                                +{{ bet.payout|add:"-"|add:bet.amount|floatformat:2 }} KES
+                            </div>
+                        {% elif bet.status == 'lost' %}
+                            <div class="fw-bold text-danger">
+                                -{{ bet.amount|floatformat:2 }} KES
+                            </div>
+                        {% else %}
+                            <span class="text-secondary">-</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-2 col-12 text-md-center">
+                        {% if bet.status == 'won' %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle-fill"></i> Won
+                            </span>
+                        {% elif bet.status == 'lost' %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle-fill"></i> Lost
+                            </span>
+                        {% elif bet.status == 'active' %}
+                            <span class="badge bg-warning">
+                                <i class="bi bi-play-circle-fill"></i> Active
+                            </span>
+                        {% elif bet.status == 'pending' %}
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-hourglass-split"></i> Pending
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ bet.status|title }}</span>
+                        {% endif %}
+                        
+                        {% if bet.auto_cashout %}
+                        <div class="text-secondary small mt-1">
+                            <i class="bi bi-gear-fill"></i> Auto @ {{ bet.auto_cashout|floatformat:2 }}x
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="bi bi-dice-5"></i>
+                <h5>No Bets Yet</h5>
+                <p>Start playing to see your betting history</p>
+                <a href="{% url 'aviator:game' %}" class="btn btn-primary">
+                    <i class="bi bi-controller"></i> Play Aviator
+                </a>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" style="background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calculate statistics
+    calculateStats();
+    
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const bets = document.querySelectorAll('.bet-card');
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active state
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter bets
+            bets.forEach(bet => {
+                if (filter === 'all' || bet.dataset.status === filter) {
+                    bet.style.display = 'block';
+                } else {
+                    bet.style.display = 'none';
+                }
+            });
+            
+            // Recalculate stats for filtered view
+            calculateStats(filter);
+        });
+    });
+    
+    function calculateStats(filter = 'all') {
+        let totalBets = 0;
+        let totalWins = 0;
+        let totalLosses = 0;
+        let totalWagered = 0;
+        let totalPayout = 0;
+        
+        bets.forEach(bet => {
+            const status = bet.dataset.status;
+            
+            if (filter !== 'all' && status !== filter) {
+                return; // Skip if not matching filter
+            }
+            
+            totalBets++;
+            
+            // Get bet amount
+            const amountText = bet.querySelector('.col-md-2:nth-child(2) .fw-bold')?.textContent || '0';
+            const amount = parseFloat(amountText.replace(/[^0-9.-]+/g, ''));
+            totalWagered += amount;
+            
+            // Get payout
+            const payoutText = bet.querySelector('.payout-amount')?.textContent || '0';
+            const payout = parseFloat(payoutText.replace(/[^0-9.-]+/g, ''));
+            
+            if (status === 'won') {
+                totalWins++;
+                totalPayout += payout;
+            } else if (status === 'lost') {
+                totalLosses++;
+            }
+        });
+        
+        const winRate = totalBets > 0 ? (totalWins / totalBets * 100).toFixed(1) : 0;
+        
+        document.getElementById('totalBets').textContent = totalBets;
+        document.getElementById('totalWins').textContent = totalWins;
+        document.getElementById('totalLosses').textContent = totalLosses;
+        document.getElementById('totalWagered').textContent = totalWagered.toFixed(2);
+        document.getElementById('totalPayout').textContent = totalPayout.toFixed(2);
+        document.getElementById('winRate').textContent = winRate + '%';
+    }
+});
+</script>
+{% endblock %}
