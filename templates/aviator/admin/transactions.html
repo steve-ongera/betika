@@ -1,0 +1,262 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Transaction Management</h1>
+    <p class="page-subtitle">Monitor and manage all financial transactions</p>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <div class="stat-label">Total Deposits</div>
+            <div class="stat-value">{{ total_deposits|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-arrow-up-circle"></i>
+            </div>
+            <div class="stat-label">Total Withdrawals</div>
+            <div class="stat-value">{{ total_withdrawals|floatformat:0 }}</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-label">Pending</div>
+            <div class="stat-value">{{ pending_count }}</div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-label">Net Flow</div>
+            <div class="stat-value">{{ total_deposits|floatformat:0|add:"-"|add:total_withdrawals|floatformat:0 }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Reference, phone..." value="{{ search }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-control">
+                    <option value="all" {% if transaction_type == 'all' %}selected{% endif %}>All Types</option>
+                    <option value="deposit" {% if transaction_type == 'deposit' %}selected{% endif %}>Deposits</option>
+                    <option value="withdrawal" {% if transaction_type == 'withdrawal' %}selected{% endif %}>Withdrawals</option>
+                    <option value="bet" {% if transaction_type == 'bet' %}selected{% endif %}>Bets</option>
+                    <option value="win" {% if transaction_type == 'win' %}selected{% endif %}>Wins</option>
+                    <option value="bonus" {% if transaction_type == 'bonus' %}selected{% endif %}>Bonus</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+                    <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Transactions ({{ transactions.paginator.count }})</h5>
+        <button class="btn btn-sm btn-outline-primary" onclick="exportTransactions()">
+            <i class="bi bi-download me-2"></i>Export
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Reference</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td>{{ txn.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'aviator:admin_user_detail' txn.user.id %}">
+                                {{ txn.user.phone_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if txn.transaction_type == 'deposit' %}success{% elif txn.transaction_type == 'withdrawal' %}warning{% elif txn.transaction_type == 'win' %}info{% else %}secondary{% endif %}">
+                                {{ txn.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td><strong>{{ txn.amount|floatformat:2 }} KES</strong></td>
+                        <td>
+                            <span class="badge bg-{% if txn.status == 'completed' %}success{% elif txn.status == 'pending' %}warning{% elif txn.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                                {{ txn.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <code>{{ txn.reference }}</code>
+                            {% if txn.mpesa_receipt %}
+                            <br><small class="text-secondary">M-Pesa: {{ txn.mpesa_receipt }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if txn.transaction_type == 'withdrawal' and txn.status == 'pending' %}
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-success" onclick="approveWithdrawal('{{ txn.id }}')" title="Approve">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                                <button class="btn btn-danger" onclick="rejectWithdrawal('{{ txn.id }}')" title="Reject">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewDetails('{{ txn.id }}')" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary py-4">
+                            No transactions found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if transactions.has_other_pages %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if transactions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ transactions.previous_page_number }}&search={{ search }}&type={{ transaction_type }}&status={{ status }}">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in transactions.paginator.page_range %}
+                {% if num > transactions.number|add:"-3" and num < transactions.number|add:"3" %}
+                <li class="page-item {% if transactions.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&search={{ search }}&type={{ transaction_type }}&status={{ status }}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if transactions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ transactions.next_page_number }}&search={{ search }}&type={{ transaction_type }}&status={{ status }}">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function approveWithdrawal(txnId) {
+    if (!confirm('Are you sure you want to approve this withdrawal?')) return;
+    
+    const response = await fetch(`/admin/transactions/${txnId}/approve/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        alert('Withdrawal approved successfully');
+        location.reload();
+    } else {
+        alert('Error: ' + result.message);
+    }
+}
+
+async function rejectWithdrawal(txnId) {
+    if (!confirm('Are you sure you want to reject this withdrawal? The amount will be refunded.')) return;
+    
+    const response = await fetch(`/admin/transactions/${txnId}/reject/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+        alert('Withdrawal rejected and refunded');
+        location.reload();
+    } else {
+        alert('Error: ' + result.message);
+    }
+}
+
+function viewDetails(txnId) {
+    // Implement transaction details modal
+    alert('Transaction details for: ' + txnId);
+}
+
+function exportTransactions() {
+    window.location.href = '{% url "aviator:admin_export_report" %}?type=transactions';
+}
+</script>
+{% endblock %}

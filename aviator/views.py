@@ -1157,3 +1157,771 @@ def leaderboard_view(request):
         stats = UserStatistics.objects.order_by('-total_won')[:10]
     
     return render(request, 'leaderboard.html', {'statistics': stats, 'period': period})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
+from django.db.models import Sum, Avg, Count, Q, F
+from django.db.models.functions import TruncDate, TruncHour
+from django.utils import timezone
+from datetime import timedelta, datetime
+from decimal import Decimal
+from .models import (
+    User, GameRound, Bet, Transaction, ChatMessage, 
+    Rain, UserStatistics, MpesaPayment, SystemSettings
+)
+import json
+
+
+# Admin Check Decorator
+def admin_required(view_func):
+    decorated_view_func = login_required(user_passes_test(
+        lambda u: u.is_staff,
+        login_url='aviator:admin_login'
+    )(view_func))
+    return decorated_view_func
+
+
+# ===================== AUTHENTICATION =====================
+
+def admin_login_view(request):
+    """Admin login page"""
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('aviator:admin_dashboard')
+    
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        
+        from django.contrib.auth import authenticate, login
+        user = authenticate(request, username=phone_number, password=password)
+        
+        if user and user.is_staff:
+            login(request, user)
+            return redirect('aviator:admin_dashboard')
+        else:
+            return render(request, 'aviator/admin/login.html', {
+                'error': 'Invalid credentials or insufficient permissions'
+            })
+    
+    return render(request, 'aviator/admin/login.html')
+
+
+@admin_required
+def admin_logout_view(request):
+    """Admin logout"""
+    from django.contrib.auth import logout
+    logout(request)
+    return redirect('aviator:admin_login')
+
+
+# ===================== DASHBOARD =====================
+
+@admin_required
+def admin_dashboard(request):
+    """Main admin dashboard with analytics"""
+    # Date filters
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    # Overview Stats
+    total_users = User.objects.filter(is_staff=False).count()
+    active_users_today = User.objects.filter(
+        last_login__date=today,
+        is_staff=False
+    ).count()
+    
+    total_bets = Bet.objects.count()
+    total_wagered = Bet.objects.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    total_payouts = Bet.objects.filter(
+        status='won'
+    ).aggregate(
+        total=Sum('payout')
+    )['total'] or 0
+    
+    house_profit = float(total_wagered) - float(total_payouts)
+    
+    # Financial Stats
+    total_deposits = Transaction.objects.filter(
+        transaction_type='deposit',
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    total_withdrawals = Transaction.objects.filter(
+        transaction_type='withdrawal',
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    pending_withdrawals = Transaction.objects.filter(
+        transaction_type='withdrawal',
+        status='pending'
+    ).count()
+    
+    # Today's Stats
+    today_bets = Bet.objects.filter(created_at__date=today).count()
+    today_wagered = Bet.objects.filter(
+        created_at__date=today
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    today_deposits = Transaction.objects.filter(
+        transaction_type='deposit',
+        status='completed',
+        created_at__date=today
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Active Game Stats
+    active_rounds = GameRound.objects.filter(
+        status__in=['waiting', 'flying']
+    ).count()
+    
+    current_round = GameRound.objects.filter(
+        status__in=['waiting', 'flying']
+    ).order_by('-round_number').first()
+    
+    active_bets = Bet.objects.filter(
+        status__in=['pending', 'active']
+    ).count()
+    
+    context = {
+        # Users
+        'total_users': total_users,
+        'active_users_today': active_users_today,
+        
+        # Bets
+        'total_bets': total_bets,
+        'total_wagered': total_wagered,
+        'total_payouts': total_payouts,
+        'house_profit': house_profit,
+        'today_bets': today_bets,
+        'today_wagered': today_wagered,
+        
+        # Finances
+        'total_deposits': total_deposits,
+        'total_withdrawals': total_withdrawals,
+        'pending_withdrawals': pending_withdrawals,
+        'today_deposits': today_deposits,
+        
+        # Game
+        'active_rounds': active_rounds,
+        'current_round': current_round,
+        'active_bets': active_bets,
+    }
+    
+    return render(request, 'aviator/admin/dashboard.html', context)
+
+
+# ===================== ANALYTICS =====================
+
+@admin_required
+def admin_analytics(request):
+    """Detailed analytics and charts"""
+    return render(request, 'aviator/admin/analytics.html')
+
+
+@admin_required
+def get_analytics_data(request):
+    """API endpoint for analytics data"""
+    period = request.GET.get('period', '7')  # days
+    chart_type = request.GET.get('type', 'revenue')
+    
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=int(period))
+    
+    if chart_type == 'revenue':
+        # Daily revenue data
+        data = []
+        current = start_date
+        while current <= end_date:
+            day_start = current.replace(hour=0, minute=0, second=0)
+            day_end = day_start + timedelta(days=1)
+            
+            deposits = Transaction.objects.filter(
+                transaction_type='deposit',
+                status='completed',
+                created_at__gte=day_start,
+                created_at__lt=day_end
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            withdrawals = Transaction.objects.filter(
+                transaction_type='withdrawal',
+                status='completed',
+                created_at__gte=day_start,
+                created_at__lt=day_end
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            data.append({
+                'date': current.strftime('%Y-%m-%d'),
+                'deposits': float(deposits),
+                'withdrawals': float(withdrawals),
+                'net': float(deposits - withdrawals)
+            })
+            
+            current += timedelta(days=1)
+        
+        return JsonResponse({'success': True, 'data': data})
+    
+    elif chart_type == 'bets':
+        # Betting activity
+        bets_data = Bet.objects.filter(
+            created_at__gte=start_date
+        ).annotate(
+            date=TruncDate('created_at')
+        ).values('date').annotate(
+            count=Count('id'),
+            total_amount=Sum('amount'),
+            total_payout=Sum('payout')
+        ).order_by('date')
+        
+        data = [{
+            'date': item['date'].strftime('%Y-%m-%d'),
+            'count': item['count'],
+            'wagered': float(item['total_amount']),
+            'payout': float(item['total_payout'] or 0)
+        } for item in bets_data]
+        
+        return JsonResponse({'success': True, 'data': data})
+    
+    elif chart_type == 'users':
+        # User activity
+        users_data = User.objects.filter(
+            date_joined__gte=start_date,
+            is_staff=False
+        ).annotate(
+            date=TruncDate('date_joined')
+        ).values('date').annotate(
+            count=Count('id')
+        ).order_by('date')
+        
+        data = [{
+            'date': item['date'].strftime('%Y-%m-%d'),
+            'new_users': item['count']
+        } for item in users_data]
+        
+        return JsonResponse({'success': True, 'data': data})
+    
+    elif chart_type == 'hourly':
+        # Hourly activity for today
+        today = timezone.now().date()
+        hourly_data = Bet.objects.filter(
+            created_at__date=today
+        ).annotate(
+            hour=TruncHour('created_at')
+        ).values('hour').annotate(
+            count=Count('id'),
+            amount=Sum('amount')
+        ).order_by('hour')
+        
+        data = [{
+            'hour': item['hour'].strftime('%H:00'),
+            'bets': item['count'],
+            'amount': float(item['amount'])
+        } for item in hourly_data]
+        
+        return JsonResponse({'success': True, 'data': data})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid chart type'})
+
+
+# ===================== USER MANAGEMENT =====================
+
+@admin_required
+def admin_users(request):
+    """User management page"""
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', 'all')
+    sort = request.GET.get('sort', '-date_joined')
+    
+    users = User.objects.filter(is_staff=False)
+    
+    if search:
+        users = users.filter(
+            Q(phone_number__icontains=search) |
+            Q(full_name__icontains=search)
+        )
+    
+    if status == 'active':
+        users = users.filter(is_active=True)
+    elif status == 'inactive':
+        users = users.filter(is_active=False)
+    
+    users = users.order_by(sort)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(users, 50)
+    page = request.GET.get('page', 1)
+    users_page = paginator.get_page(page)
+    
+    context = {
+        'users': users_page,
+        'search': search,
+        'status': status,
+        'sort': sort,
+    }
+    
+    return render(request, 'aviator/admin/users.html', context)
+
+
+@admin_required
+def admin_user_detail(request, user_id):
+    """Detailed user view"""
+    user = get_object_or_404(User, id=user_id, is_staff=False)
+    
+    # User stats
+    total_bets = user.bets.count()
+    total_wagered = user.bets.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    total_won = user.bets.filter(
+        status='won'
+    ).aggregate(total=Sum('payout'))['total'] or 0
+    
+    win_count = user.bets.filter(status='won').count()
+    win_rate = (win_count / total_bets * 100) if total_bets > 0 else 0
+    
+    # Recent activity
+    recent_bets = user.bets.select_related('game_round').order_by('-created_at')[:10]
+    recent_transactions = user.transactions.order_by('-created_at')[:10]
+    
+    context = {
+        'user': user,
+        'total_bets': total_bets,
+        'total_wagered': total_wagered,
+        'total_won': total_won,
+        'win_rate': win_rate,
+        'recent_bets': recent_bets,
+        'recent_transactions': recent_transactions,
+    }
+    
+    return render(request, 'aviator/admin/user_detail.html', context)
+
+
+@admin_required
+def admin_toggle_user(request, user_id):
+    """Activate/Deactivate user"""
+    if request.method == 'POST':
+        user = get_object_or_404(User, id=user_id, is_staff=False)
+        user.is_active = not user.is_active
+        user.save()
+        
+        action = "activated" if user.is_active else "deactivated"
+        return JsonResponse({
+            'success': True,
+            'message': f'User {action} successfully',
+            'is_active': user.is_active
+        })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@admin_required
+def admin_adjust_balance(request, user_id):
+    """Adjust user balance"""
+    if request.method == 'POST':
+        user = get_object_or_404(User, id=user_id)
+        amount = Decimal(request.POST.get('amount', 0))
+        transaction_type = request.POST.get('type', 'bonus')  # bonus or refund
+        description = request.POST.get('description', '')
+        
+        if amount == 0:
+            return JsonResponse({'success': False, 'message': 'Invalid amount'})
+        
+        balance_before = user.balance
+        user.balance += amount
+        user.save()
+        
+        # Create transaction record
+        Transaction.objects.create(
+            user=user,
+            transaction_type=transaction_type,
+            amount=amount,
+            status='completed',
+            reference=f'ADMIN_{timezone.now().strftime("%Y%m%d%H%M%S")}',
+            description=description or f'Balance adjustment by admin',
+            balance_before=balance_before,
+            balance_after=user.balance
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Balance adjusted successfully',
+            'new_balance': float(user.balance)
+        })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+# ===================== GAME MANAGEMENT =====================
+
+@admin_required
+def admin_games(request):
+    """Game rounds management"""
+    status_filter = request.GET.get('status', 'all')
+    
+    rounds = GameRound.objects.all()
+    
+    if status_filter != 'all':
+        rounds = rounds.filter(status=status_filter)
+    
+    rounds = rounds.order_by('-round_number')[:100]
+    
+    # Stats
+    total_rounds = GameRound.objects.count()
+    avg_multiplier = GameRound.objects.filter(
+        status='crashed'
+    ).aggregate(avg=Avg('multiplier'))['avg'] or 0
+    
+    context = {
+        'rounds': rounds,
+        'status_filter': status_filter,
+        'total_rounds': total_rounds,
+        'avg_multiplier': avg_multiplier,
+    }
+    
+    return render(request, 'aviator/admin/games.html', context)
+
+
+@admin_required
+def admin_game_detail(request, round_id):
+    """Detailed game round view"""
+    game_round = get_object_or_404(GameRound, id=round_id)
+    
+    bets = game_round.bets.select_related('user').order_by('-amount')
+    
+    # Round stats
+    total_bets = bets.count()
+    total_wagered = bets.aggregate(total=Sum('amount'))['total'] or 0
+    total_payout = bets.filter(status='won').aggregate(
+        total=Sum('payout')
+    )['total'] or 0
+    
+    house_profit = float(total_wagered) - float(total_payout)
+    
+    context = {
+        'game_round': game_round,
+        'bets': bets,
+        'total_bets': total_bets,
+        'total_wagered': total_wagered,
+        'total_payout': total_payout,
+        'house_profit': house_profit,
+    }
+    
+    return render(request, 'aviator/admin/game_detail.html', context)
+
+
+@admin_required
+def admin_game_control(request):
+    """Game control panel"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'pause':
+            # Implement game pause logic
+            return JsonResponse({'success': True, 'message': 'Game paused'})
+        
+        elif action == 'resume':
+            # Implement game resume logic
+            return JsonResponse({'success': True, 'message': 'Game resumed'})
+        
+        elif action == 'force_crash':
+            # Force current round to crash
+            current_round = GameRound.objects.filter(
+                status='flying'
+            ).first()
+            if current_round:
+                # Implement crash logic
+                return JsonResponse({'success': True, 'message': 'Round crashed'})
+            return JsonResponse({'success': False, 'message': 'No active round'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+# ===================== TRANSACTIONS =====================
+
+@admin_required
+def admin_transactions(request):
+    """Transaction management"""
+    transaction_type = request.GET.get('type', 'all')
+    status = request.GET.get('status', 'all')
+    search = request.GET.get('search', '')
+    
+    transactions = Transaction.objects.select_related('user').all()
+    
+    if transaction_type != 'all':
+        transactions = transactions.filter(transaction_type=transaction_type)
+    
+    if status != 'all':
+        transactions = transactions.filter(status=status)
+    
+    if search:
+        transactions = transactions.filter(
+            Q(reference__icontains=search) |
+            Q(user__phone_number__icontains=search) |
+            Q(mpesa_receipt__icontains=search)
+        )
+    
+    transactions = transactions.order_by('-created_at')
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(transactions, 50)
+    page = request.GET.get('page', 1)
+    transactions_page = paginator.get_page(page)
+    
+    # Stats
+    total_deposits = Transaction.objects.filter(
+        transaction_type='deposit',
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    total_withdrawals = Transaction.objects.filter(
+        transaction_type='withdrawal',
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    pending_count = Transaction.objects.filter(status='pending').count()
+    
+    context = {
+        'transactions': transactions_page,
+        'transaction_type': transaction_type,
+        'status': status,
+        'search': search,
+        'total_deposits': total_deposits,
+        'total_withdrawals': total_withdrawals,
+        'pending_count': pending_count,
+    }
+    
+    return render(request, 'aviator/admin/transactions.html', context)
+
+
+@admin_required
+def admin_approve_withdrawal(request, transaction_id):
+    """Approve withdrawal"""
+    if request.method == 'POST':
+        transaction = get_object_or_404(
+            Transaction,
+            id=transaction_id,
+            transaction_type='withdrawal',
+            status='pending'
+        )
+        
+        transaction.status = 'completed'
+        transaction.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Withdrawal approved successfully'
+        })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@admin_required
+def admin_reject_withdrawal(request, transaction_id):
+    """Reject withdrawal"""
+    if request.method == 'POST':
+        transaction = get_object_or_404(
+            Transaction,
+            id=transaction_id,
+            transaction_type='withdrawal',
+            status='pending'
+        )
+        
+        # Refund user
+        user = transaction.user
+        user.balance += transaction.amount
+        user.save()
+        
+        transaction.status = 'cancelled'
+        transaction.description += ' | Rejected by admin'
+        transaction.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Withdrawal rejected and refunded'
+        })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+# ===================== SETTINGS =====================
+
+@admin_required
+def admin_settings(request):
+    """System settings management"""
+    if request.method == 'POST':
+        # Update settings
+        for key in request.POST:
+            if key != 'csrfmiddlewaretoken':
+                SystemSettings.objects.update_or_create(
+                    key=key,
+                    defaults={'value': request.POST.get(key)}
+                )
+        
+        return redirect('aviator:admin_settings')
+    
+    # Get all settings
+    settings = {}
+    for setting in SystemSettings.objects.all():
+        settings[setting.key] = setting.value
+    
+    # Default settings if not exist
+    default_settings = {
+        'min_bet': '10',
+        'max_bet': '100000',
+        'max_multiplier': '100',
+        'game_duration': '30',
+        'maintenance_mode': 'false',
+        'registration_enabled': 'true',
+        'min_withdrawal': '100',
+        'max_withdrawal': '500000',
+    }
+    
+    for key, value in default_settings.items():
+        if key not in settings:
+            settings[key] = value
+    
+    context = {'settings': settings}
+    return render(request, 'aviator/admin/settings.html', context)
+
+
+# ===================== REPORTS =====================
+
+@admin_required
+def admin_reports(request):
+    """Generate reports"""
+    report_type = request.GET.get('type', 'daily')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if not start_date:
+        start_date = (timezone.now() - timedelta(days=30)).date()
+    else:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    
+    if not end_date:
+        end_date = timezone.now().date()
+    else:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    context = {
+        'report_type': report_type,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    
+    return render(request, 'aviator/admin/reports.html', context)
+
+
+@admin_required
+def admin_export_report(request):
+    """Export report as CSV"""
+    import csv
+    from django.http import HttpResponse
+    
+    report_type = request.GET.get('type', 'users')
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{report_type}_report.csv"'
+    
+    writer = csv.writer(response)
+    
+    if report_type == 'users':
+        writer.writerow(['Phone', 'Name', 'Balance', 'Bets', 'Wagered', 'Date Joined'])
+        users = User.objects.filter(is_staff=False).annotate(
+            total_bets=Count('bets'),
+            total_wagered=Sum('bets__amount')
+        )
+        for user in users:
+            writer.writerow([
+                user.phone_number,
+                user.full_name,
+                user.balance,
+                user.total_bets,
+                user.total_wagered or 0,
+                user.date_joined.strftime('%Y-%m-%d %H:%M')
+            ])
+    
+    elif report_type == 'transactions':
+        writer.writerow(['Date', 'User', 'Type', 'Amount', 'Status', 'Reference'])
+        transactions = Transaction.objects.select_related('user').order_by('-created_at')[:1000]
+        for txn in transactions:
+            writer.writerow([
+                txn.created_at.strftime('%Y-%m-%d %H:%M'),
+                txn.user.phone_number,
+                txn.transaction_type,
+                txn.amount,
+                txn.status,
+                txn.reference
+            ])
+    
+    return response
+
+
+# ===================== LIVE MONITORING =====================
+
+@admin_required
+def admin_live_monitor(request):
+    """Live game monitoring"""
+    return render(request, 'aviator/admin/live_monitor.html')
+
+
+@admin_required
+def get_live_stats(request):
+    """Get real-time stats for monitoring"""
+    # Current round info
+    current_round = GameRound.objects.filter(
+        status__in=['waiting', 'flying']
+    ).order_by('-round_number').first()
+    
+    # Active bets
+    active_bets = Bet.objects.filter(
+        status__in=['pending', 'active']
+    ).count()
+    
+    active_bet_amount = Bet.objects.filter(
+        status__in=['pending', 'active']
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Online users (active in last 5 minutes)
+    five_min_ago = timezone.now() - timedelta(minutes=5)
+    online_users = User.objects.filter(
+        last_login__gte=five_min_ago,
+        is_staff=False
+    ).count()
+    
+    # Recent activity
+    recent_bets = Bet.objects.select_related('user', 'game_round').order_by(
+        '-created_at'
+    )[:10]
+    
+    recent_bets_data = [{
+        'user': bet.user.phone_number,
+        'amount': float(bet.amount),
+        'multiplier': float(bet.cashout_multiplier) if bet.cashout_multiplier else None,
+        'payout': float(bet.payout),
+        'status': bet.status,
+        'round': bet.game_round.round_number,
+        'time': bet.created_at.strftime('%H:%M:%S')
+    } for bet in recent_bets]
+    
+    data = {
+        'current_round': {
+            'number': current_round.round_number if current_round else 0,
+            'status': current_round.status if current_round else 'none',
+            'multiplier': float(current_round.multiplier) if current_round and current_round.multiplier else 0
+        },
+        'active_bets': active_bets,
+        'active_bet_amount': float(active_bet_amount),
+        'online_users': online_users,
+        'recent_bets': recent_bets_data
+    }
+    
+    return JsonResponse({'success': True, 'data': data})

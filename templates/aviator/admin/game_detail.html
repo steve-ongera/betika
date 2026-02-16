@@ -1,0 +1,237 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Round #{{ game_round.round_number }} Details{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Round #{{ game_round.round_number }}</h1>
+        <p class="page-subtitle">Detailed information about this game round</p>
+    </div>
+    <a href="{% url 'aviator:admin_games' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Rounds
+    </a>
+</div>
+
+<!-- Round Info -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h1 mb-2">
+                    {% if game_round.multiplier %}
+                    {{ game_round.multiplier|floatformat:2 }}x
+                    {% else %}
+                    —
+                    {% endif %}
+                </div>
+                <div class="text-secondary">Crash Multiplier</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h1 mb-2">{{ total_bets }}</div>
+                <div class="text-secondary">Total Bets</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h1 mb-2">{{ total_wagered|floatformat:0 }}</div>
+                <div class="text-secondary">Total Wagered (KES)</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h1 mb-2 {% if house_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ house_profit|floatformat:0 }}
+                </div>
+                <div class="text-secondary">House Profit (KES)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Round Details -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Round Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-secondary">Round Number:</td>
+                        <td><strong>#{{ game_round.round_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">Status:</td>
+                        <td>
+                            <span class="badge bg-{% if game_round.status == 'waiting' %}secondary{% elif game_round.status == 'flying' %}primary{% else %}danger{% endif %}">
+                                {{ game_round.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">Start Time:</td>
+                        <td>{{ game_round.start_time|date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">End Time:</td>
+                        <td>
+                            {% if game_round.end_time %}
+                            {{ game_round.end_time|date:"Y-m-d H:i:s" }}
+                            {% else %}
+                            <span class="text-secondary">In Progress</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">Duration:</td>
+                        <td>
+                            {% if game_round.end_time %}
+                            {{ game_round.end_time|timesince:game_round.start_time }}
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Financial Summary</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-secondary">Total Bets:</td>
+                        <td><strong>{{ total_bets }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">Total Wagered:</td>
+                        <td><strong>{{ total_wagered|floatformat:2 }} KES</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">Total Payout:</td>
+                        <td><strong>{{ total_payout|floatformat:2 }} KES</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">House Profit:</td>
+                        <td>
+                            <strong class="{% if house_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ house_profit|floatformat:2 }} KES
+                            </strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-secondary">House Edge:</td>
+                        <td>
+                            <strong>
+                                {% if total_wagered > 0 %}
+                                {{ house_profit|floatformat:2|add:"/"|add:total_wagered|floatformat:2|add:"*100"|floatformat:2 }}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bets Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Bets in this Round</h5>
+        <span class="badge bg-primary">{{ total_bets }} bets</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Bet Amount</th>
+                        <th>Cashout At</th>
+                        <th>Payout</th>
+                        <th>Status</th>
+                        <th>Profit/Loss</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bet in bets %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'aviator:admin_user_detail' bet.user.id %}">
+                                {{ bet.user.phone_number }}
+                            </a>
+                        </td>
+                        <td><strong>{{ bet.amount|floatformat:2 }} KES</strong></td>
+                        <td>
+                            {% if bet.cashout_multiplier %}
+                            <span class="badge bg-success">{{ bet.cashout_multiplier|floatformat:2 }}x</span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bet.payout > 0 %}
+                            <strong class="text-success">{{ bet.payout|floatformat:2 }} KES</strong>
+                            {% else %}
+                            <span class="text-secondary">0.00 KES</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if bet.status == 'won' %}success{% elif bet.status == 'lost' %}danger{% elif bet.status == 'active' %}primary{% else %}secondary{% endif %}">
+                                {{ bet.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if bet.status == 'won' %}
+                            <span class="text-success">+{{ bet.payout|floatformat:2|add:"-"|add:bet.amount|floatformat:2 }} KES</span>
+                            {% elif bet.status == 'lost' %}
+                            <span class="text-danger">-{{ bet.amount|floatformat:2 }} KES</span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ bet.created_at|date:"H:i:s" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary py-4">
+                            No bets placed in this round
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any round-specific JavaScript here
+});
+</script>
+{% endblock %}

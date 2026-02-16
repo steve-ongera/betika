@@ -1,0 +1,352 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard Overview</h1>
+    <p class="page-subtitle">Monitor your platform's performance and key metrics</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ total_users|default:0 }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i>
+                {{ active_users_today }} active today
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Total Wagered</div>
+            <div class="stat-value">{{ total_wagered|floatformat:0 }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i>
+                {{ today_wagered|floatformat:0 }} today
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-label">House Profit</div>
+            <div class="stat-value">{{ house_profit|floatformat:0 }}</div>
+            <div class="stat-change {% if house_profit >= 0 %}positive{% else %}negative{% endif %}">
+                <i class="bi bi-{% if house_profit >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                {{ house_profit|floatformat:2 }} KES
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="bi bi-controller"></i>
+            </div>
+            <div class="stat-label">Total Bets</div>
+            <div class="stat-value">{{ total_bets|default:0 }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i>
+                {{ today_bets }} today
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <div class="stat-label">Total Deposits</div>
+            <div class="stat-value">{{ total_deposits|floatformat:0 }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i>
+                {{ today_deposits|floatformat:0 }} today
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-arrow-up-circle"></i>
+            </div>
+            <div class="stat-label">Total Withdrawals</div>
+            <div class="stat-value">{{ total_withdrawals|floatformat:0 }}</div>
+            <div class="stat-change">
+                <i class="bi bi-clock"></i>
+                {{ pending_withdrawals }} pending
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-broadcast"></i>
+            </div>
+            <div class="stat-label">Active Game</div>
+            <div class="stat-value">{% if current_round %}#{{ current_round.round_number }}{% else %}None{% endif %}</div>
+            <div class="stat-change">
+                <i class="bi bi-activity"></i>
+                {{ active_bets }} active bets
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-trophy"></i>
+            </div>
+            <div class="stat-label">Total Payouts</div>
+            <div class="stat-value">{{ total_payouts|floatformat:0 }}</div>
+            <div class="stat-change">
+                <i class="bi bi-percent"></i>
+                {{ total_bets|default:0 }} bets placed
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Revenue Overview</h5>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" data-period="7">7 Days</button>
+                    <button class="btn btn-outline-secondary" data-period="30">30 Days</button>
+                    <button class="btn btn-outline-secondary" data-period="90">90 Days</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Betting Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bettingChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Recent Transactions</h5>
+                <a href="{% url 'aviator:admin_transactions' %}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTransactions">
+                            <tr>
+                                <td colspan="5" class="text-center text-secondary">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'aviator:admin_users' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-people me-2"></i>
+                        Manage Users
+                    </a>
+                    <a href="{% url 'aviator:admin_transactions' %}?status=pending" class="btn btn-outline-warning">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Pending Withdrawals
+                        {% if pending_withdrawals %}
+                        <span class="badge bg-warning">{{ pending_withdrawals }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'aviator:admin_live_monitor' %}" class="btn btn-outline-success">
+                        <i class="bi bi-broadcast me-2"></i>
+                        Live Monitor
+                    </a>
+                    <a href="{% url 'aviator:admin_reports' %}" class="btn btn-outline-info">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>
+                        Generate Report
+                    </a>
+                    <a href="{% url 'aviator:admin_settings' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear me-2"></i>
+                        System Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    let revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Deposits',
+                data: [],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Withdrawals',
+                data: [],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#94a3b8'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#94a3b8'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#94a3b8'
+                    },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Betting Activity Chart
+    const bettingCtx = document.getElementById('bettingChart').getContext('2d');
+    const bettingChart = new Chart(bettingCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Won', 'Lost', 'Pending'],
+            datasets: [{
+                data: [45, 35, 20],
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(245, 158, 11, 0.8)'
+                ],
+                borderColor: [
+                    '#10b981',
+                    '#ef4444',
+                    '#f59e0b'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#94a3b8',
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+    
+    // Load Revenue Data
+    async function loadRevenueData(period = 7) {
+        const response = await adminApiCall(`{% url 'aviator:admin_api_analytics' %}?type=revenue&period=${period}`);
+        if (response.success) {
+            const data = response.data;
+            revenueChart.data.labels = data.map(d => d.date);
+            revenueChart.data.datasets[0].data = data.map(d => d.deposits);
+            revenueChart.data.datasets[1].data = data.map(d => d.withdrawals);
+            revenueChart.update();
+        }
+    }
+    
+    // Period buttons
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            loadRevenueData(this.dataset.period);
+        });
+    });
+    
+    // Load initial data
+    loadRevenueData();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        loadRevenueData(document.querySelector('[data-period].active').dataset.period);
+    }, 30000);
+});
+</script>
+{% endblock %}

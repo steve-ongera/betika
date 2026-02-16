@@ -1,0 +1,286 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Analytics & Insights</h1>
+    <p class="page-subtitle">Detailed performance metrics and trends</p>
+</div>
+
+<!-- Time Range Selector -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary active" data-range="today">Today</button>
+                    <button class="btn btn-outline-primary" data-range="week">This Week</button>
+                    <button class="btn btn-outline-primary" data-range="month">This Month</button>
+                    <button class="btn btn-outline-primary" data-range="year">This Year</button>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-outline-secondary" onclick="exportData()">
+                    <i class="bi bi-download me-2"></i>
+                    Export Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Daily Betting Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="betsActivityChart" height="60"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Hourly Activity (Today)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hourlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">User Growth</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h2 mb-2">₹<span id="avgBetAmount">0</span></div>
+                <div class="text-secondary">Avg Bet Amount</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h2 mb-2"><span id="avgMultiplier">0</span>x</div>
+                <div class="text-secondary">Avg Multiplier</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h2 mb-2"><span id="winRate">0</span>%</div>
+                <div class="text-secondary">Win Rate</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="h2 mb-2">₹<span id="houseEdge">0</span></div>
+                <div class="text-secondary">House Edge</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Betting Activity Chart
+    const betsCtx = document.getElementById('betsActivityChart').getContext('2d');
+    const betsChart = new Chart(betsCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Total Bets',
+                data: [],
+                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                borderColor: '#6366f1',
+                borderWidth: 2
+            }, {
+                label: 'Wagered Amount',
+                data: [],
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: '#10b981',
+                borderWidth: 2,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    ticks: { color: '#94a3b8' },
+                    grid: { drawOnChartArea: false }
+                },
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+    
+    // Hourly Activity Chart
+    const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+    const hourlyChart = new Chart(hourlyCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Bets per Hour',
+                data: [],
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+    
+    // User Growth Chart
+    const userCtx = document.getElementById('userGrowthChart').getContext('2d');
+    const userChart = new Chart(userCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'New Users',
+                data: [],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                },
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+    
+    // Load Data Functions
+    async function loadBetsData(period = '7') {
+        const response = await adminApiCall(`{% url 'aviator:admin_api_analytics' %}?type=bets&period=${period}`);
+        if (response.success) {
+            betsChart.data.labels = response.data.map(d => d.date);
+            betsChart.data.datasets[0].data = response.data.map(d => d.count);
+            betsChart.data.datasets[1].data = response.data.map(d => d.wagered);
+            betsChart.update();
+        }
+    }
+    
+    async function loadHourlyData() {
+        const response = await adminApiCall(`{% url 'aviator:admin_api_analytics' %}?type=hourly`);
+        if (response.success) {
+            hourlyChart.data.labels = response.data.map(d => d.hour);
+            hourlyChart.data.datasets[0].data = response.data.map(d => d.bets);
+            hourlyChart.update();
+        }
+    }
+    
+    async function loadUserData(period = '7') {
+        const response = await adminApiCall(`{% url 'aviator:admin_api_analytics' %}?type=users&period=${period}`);
+        if (response.success) {
+            userChart.data.labels = response.data.map(d => d.date);
+            userChart.data.datasets[0].data = response.data.map(d => d.new_users);
+            userChart.update();
+        }
+    }
+    
+    // Initialize
+    loadBetsData();
+    loadHourlyData();
+    loadUserData();
+    
+    // Auto refresh
+    setInterval(() => {
+        loadBetsData();
+        loadHourlyData();
+        loadUserData();
+    }, 60000);
+});
+
+function exportData() {
+    window.location.href = '{% url "aviator:admin_export_report" %}?type=analytics';
+}
+</script>
+{% endblock %}

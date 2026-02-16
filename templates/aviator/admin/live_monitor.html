@@ -1,0 +1,332 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Live Monitor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Live Game Monitor</h1>
+    <p class="page-subtitle">Real-time monitoring of game activity</p>
+</div>
+
+<!-- Live Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-broadcast"></i>
+            </div>
+            <div class="stat-label">Current Round</div>
+            <div class="stat-value" id="currentRound">#0</div>
+            <div class="stat-change">
+                <span id="roundStatus" class="badge bg-secondary">Waiting</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="stat-label">Online Users</div>
+            <div class="stat-value" id="onlineUsers">0</div>
+            <div class="stat-change">
+                <i class="bi bi-activity"></i>
+                Last 5 minutes
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-controller"></i>
+            </div>
+            <div class="stat-label">Active Bets</div>
+            <div class="stat-value" id="activeBets">0</div>
+            <div class="stat-change">
+                <span id="activeBetAmount">0</span> KES
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <div class="stat-label">Current Multiplier</div>
+            <div class="stat-value" id="currentMultiplier">1.00x</div>
+            <div class="stat-change">
+                <i class="bi bi-arrow-up"></i>
+                Flying
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Game Controls -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">Game Controls</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <button class="btn btn-warning w-100" onclick="pauseGame()">
+                    <i class="bi bi-pause-circle me-2"></i>
+                    Pause Game
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100" onclick="resumeGame()">
+                    <i class="bi bi-play-circle me-2"></i>
+                    Resume Game
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-danger w-100" onclick="forceCrash()">
+                    <i class="bi bi-x-octagon me-2"></i>
+                    Force Crash
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-info w-100" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Recent Bets</h5>
+                <span class="badge bg-success">Live</span>
+            </div>
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Multiplier</th>
+                                <th>Payout</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentBets">
+                            <tr>
+                                <td colspan="6" class="text-center text-secondary">
+                                    Waiting for bets...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <i class="bi bi-server text-success me-2"></i>
+                        Server Status
+                    </div>
+                    <span class="badge bg-success">Online</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <i class="bi bi-database text-info me-2"></i>
+                        Database
+                    </div>
+                    <span class="badge bg-success">Connected</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <i class="bi bi-broadcast text-warning me-2"></i>
+                        WebSocket
+                    </div>
+                    <span class="badge bg-success">Active</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-clock-history text-primary me-2"></i>
+                        Last Update
+                    </div>
+                    <span class="text-secondary" id="lastUpdate">—</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title">Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Total Rounds Today:</span>
+                    <strong id="totalRounds">0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Avg Multiplier:</span>
+                    <strong id="avgMultiplier">0.00x</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Highest Win:</span>
+                    <strong id="highestWin">0 KES</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-secondary">Total Wagered:</span>
+                    <strong id="totalWagered">0 KES</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let updateInterval;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Start live updates
+    updateLiveStats();
+    updateInterval = setInterval(updateLiveStats, 3000); // Update every 3 seconds
+});
+
+async function updateLiveStats() {
+    try {
+        const response = await adminApiCall('{% url "aviator:admin_api_live_stats" %}');
+        
+        if (response.success) {
+            const data = response.data;
+            
+            // Update current round
+            document.getElementById('currentRound').textContent = '#' + data.current_round.number;
+            const statusBadge = document.getElementById('roundStatus');
+            statusBadge.textContent = data.current_round.status;
+            statusBadge.className = 'badge bg-' + getStatusColor(data.current_round.status);
+            
+            // Update stats
+            document.getElementById('onlineUsers').textContent = data.online_users;
+            document.getElementById('activeBets').textContent = data.active_bets;
+            document.getElementById('activeBetAmount').textContent = formatCurrency(data.active_bet_amount);
+            document.getElementById('currentMultiplier').textContent = data.current_round.multiplier.toFixed(2) + 'x';
+            
+            // Update recent bets
+            updateRecentBets(data.recent_bets);
+            
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+    } catch (error) {
+        console.error('Error updating stats:', error);
+    }
+}
+
+function updateRecentBets(bets) {
+    const tbody = document.getElementById('recentBets');
+    
+    if (bets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-secondary">No recent bets</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = bets.map(bet => `
+        <tr>
+            <td>${bet.time}</td>
+            <td>${bet.user}</td>
+            <td>${formatCurrency(bet.amount)}</td>
+            <td>${bet.multiplier ? bet.multiplier.toFixed(2) + 'x' : '—'}</td>
+            <td>${formatCurrency(bet.payout)}</td>
+            <td><span class="badge bg-${getStatusColor(bet.status)}">${bet.status}</span></td>
+        </tr>
+    `).join('');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'waiting': 'secondary',
+        'flying': 'primary',
+        'crashed': 'danger',
+        'pending': 'warning',
+        'active': 'info',
+        'won': 'success',
+        'lost': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+async function pauseGame() {
+    if (!confirm('Are you sure you want to pause the game?')) return;
+    
+    const response = await fetch('{% url "aviator:admin_game_control" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'pause' })
+    });
+    
+    const result = await response.json();
+    alert(result.message);
+}
+
+async function resumeGame() {
+    if (!confirm('Are you sure you want to resume the game?')) return;
+    
+    const response = await fetch('{% url "aviator:admin_game_control" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'resume' })
+    });
+    
+    const result = await response.json();
+    alert(result.message);
+}
+
+async function forceCrash() {
+    if (!confirm('Are you sure you want to force crash the current round?')) return;
+    
+    const response = await fetch('{% url "aviator:admin_game_control" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'force_crash' })
+    });
+    
+    const result = await response.json();
+    alert(result.message);
+}
+
+// Clear interval when page unloads
+window.addEventListener('beforeunload', function() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+});
+</script>
+{% endblock %}

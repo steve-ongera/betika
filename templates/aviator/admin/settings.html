@@ -1,0 +1,229 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">System Settings</h1>
+    <p class="page-subtitle">Configure platform settings and parameters</p>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <!-- Game Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">Game Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Minimum Bet (KES)</label>
+                    <input type="number" name="min_bet" class="form-control" value="{{ settings.min_bet }}" step="1" required>
+                    <small class="text-secondary">Minimum amount users can bet per round</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Maximum Bet (KES)</label>
+                    <input type="number" name="max_bet" class="form-control" value="{{ settings.max_bet }}" step="1" required>
+                    <small class="text-secondary">Maximum amount users can bet per round</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Maximum Multiplier</label>
+                    <input type="number" name="max_multiplier" class="form-control" value="{{ settings.max_multiplier }}" step="0.01" required>
+                    <small class="text-secondary">Maximum multiplier the game can reach</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Game Duration (seconds)</label>
+                    <input type="number" name="game_duration" class="form-control" value="{{ settings.game_duration }}" step="1" required>
+                    <small class="text-secondary">Average duration of each game round</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transaction Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">Transaction Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Minimum Withdrawal (KES)</label>
+                    <input type="number" name="min_withdrawal" class="form-control" value="{{ settings.min_withdrawal }}" step="1" required>
+                    <small class="text-secondary">Minimum amount for withdrawal requests</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Maximum Withdrawal (KES)</label>
+                    <input type="number" name="max_withdrawal" class="form-control" value="{{ settings.max_withdrawal }}" step="1" required>
+                    <small class="text-secondary">Maximum amount for single withdrawal</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Withdrawal Processing Fee (%)</label>
+                    <input type="number" name="withdrawal_fee" class="form-control" value="{{ settings.withdrawal_fee|default:'0' }}" step="0.1">
+                    <small class="text-secondary">Percentage fee charged on withdrawals</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Deposit Bonus (%)</label>
+                    <input type="number" name="deposit_bonus" class="form-control" value="{{ settings.deposit_bonus|default:'0' }}" step="0.1">
+                    <small class="text-secondary">Bonus percentage on deposits (0 = disabled)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Platform Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">Platform Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="maintenance_mode" id="maintenanceMode" {% if settings.maintenance_mode == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="maintenanceMode">
+                            Maintenance Mode
+                        </label>
+                    </div>
+                    <small class="text-secondary">Enable to put the site in maintenance mode</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="registration_enabled" id="registrationEnabled" {% if settings.registration_enabled == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="registrationEnabled">
+                            Allow New Registrations
+                        </label>
+                    </div>
+                    <small class="text-secondary">Allow new users to register</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="auto_cashout_enabled" id="autoCashout" {% if settings.auto_cashout_enabled == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="autoCashout">
+                            Enable Auto Cashout
+                        </label>
+                    </div>
+                    <small class="text-secondary">Allow users to set automatic cashout</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="chat_enabled" id="chatEnabled" {% if settings.chat_enabled == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="chatEnabled">
+                            Enable Chat
+                        </label>
+                    </div>
+                    <small class="text-secondary">Enable/disable the in-game chat feature</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- M-Pesa Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">M-Pesa Integration</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Consumer Key</label>
+                    <input type="text" name="mpesa_consumer_key" class="form-control" value="{{ settings.mpesa_consumer_key|default:'' }}" placeholder="Enter M-Pesa consumer key">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Consumer Secret</label>
+                    <input type="password" name="mpesa_consumer_secret" class="form-control" value="{{ settings.mpesa_consumer_secret|default:'' }}" placeholder="Enter M-Pesa consumer secret">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Business Short Code</label>
+                    <input type="text" name="mpesa_shortcode" class="form-control" value="{{ settings.mpesa_shortcode|default:'' }}" placeholder="Enter business shortcode">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Pass Key</label>
+                    <input type="password" name="mpesa_passkey" class="form-control" value="{{ settings.mpesa_passkey|default:'' }}" placeholder="Enter M-Pesa passkey">
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="mpesa_sandbox" id="mpesaSandbox" {% if settings.mpesa_sandbox == 'true' %}checked{% endif %}>
+                        <label class="form-check-label" for="mpesaSandbox">
+                            Use Sandbox Mode
+                        </label>
+                    </div>
+                    <small class="text-secondary">Enable for testing with M-Pesa sandbox</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Support Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title">Support & Contact</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Support Email</label>
+                    <input type="email" name="support_email" class="form-control" value="{{ settings.support_email|default:'' }}" placeholder="support@aviator.com">
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Support Phone</label>
+                    <input type="text" name="support_phone" class="form-control" value="{{ settings.support_phone|default:'' }}" placeholder="+254700000000">
+                </div>
+                
+                <div class="col-md-12">
+                    <label class="form-label">Maintenance Message</label>
+                    <textarea name="maintenance_message" class="form-control" rows="3" placeholder="System is under maintenance. We'll be back soon!">{{ settings.maintenance_message|default:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save Button -->
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-save me-2"></i>
+            Save Settings
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle checkbox values for form submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Convert checkboxes to true/false strings
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = checkbox.name;
+            hiddenInput.value = checkbox.checked ? 'true' : 'false';
+            
+            // Remove checkbox from form data
+            checkbox.name = '';
+            
+            // Add hidden input
+            this.appendChild(hiddenInput);
+        });
+    });
+});
+</script>
+{% endblock %}

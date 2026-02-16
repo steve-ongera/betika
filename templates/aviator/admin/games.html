@@ -1,0 +1,159 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Game Rounds{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Game Rounds</h1>
+    <p class="page-subtitle">Monitor and manage all game rounds</p>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-controller"></i>
+            </div>
+            <div class="stat-label">Total Rounds</div>
+            <div class="stat-value">{{ total_rounds }}</div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-label">Average Multiplier</div>
+            <div class="stat-value">{{ avg_multiplier|floatformat:2 }}x</div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-broadcast"></i>
+            </div>
+            <div class="stat-label">Status</div>
+            <div class="stat-value">
+                <span class="badge bg-success">Active</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="waiting" {% if status_filter == 'waiting' %}selected{% endif %}>Waiting</option>
+                    <option value="flying" {% if status_filter == 'flying' %}selected{% endif %}>Flying</option>
+                    <option value="crashed" {% if status_filter == 'crashed' %}selected{% endif %}>Crashed</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label">Round Number</label>
+                <input type="number" name="round" class="form-control" placeholder="Search by round number...">
+            </div>
+            
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rounds Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Game Rounds</h5>
+        <button class="btn btn-sm btn-outline-primary" onclick="exportRounds()">
+            <i class="bi bi-download me-2"></i>Export
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Round #</th>
+                        <th>Multiplier</th>
+                        <th>Status</th>
+                        <th>Total Bets</th>
+                        <th>Total Wagered</th>
+                        <th>Total Payout</th>
+                        <th>House Profit</th>
+                        <th>Start Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for round in rounds %}
+                    <tr>
+                        <td><strong>#{{ round.round_number }}</strong></td>
+                        <td>
+                            {% if round.multiplier %}
+                            <span class="badge bg-{% if round.multiplier >= 10 %}success{% elif round.multiplier >= 5 %}warning{% else %}secondary{% endif %}">
+                                {{ round.multiplier|floatformat:2 }}x
+                            </span>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if round.status == 'waiting' %}secondary{% elif round.status == 'flying' %}primary{% else %}danger{% endif %}">
+                                {{ round.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ round.bets.count }}</td>
+                        <td>
+                            {% with total_wagered=round.bets.all|length %}
+                            {% if total_wagered > 0 %}
+                            {{ round.bets.all.0.amount|default:0 }} KES
+                            {% else %}
+                            0 KES
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% with total_payout=round.bets.filter|length %}
+                            0 KES
+                            {% endwith %}
+                        </td>
+                        <td class="text-success">0 KES</td>
+                        <td>{{ round.start_time|date:"Y-m-d H:i:s" }}</td>
+                        <td>
+                            <a href="{% url 'aviator:admin_game_detail' round.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-secondary py-4">
+                            No game rounds found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportRounds() {
+    window.location.href = '{% url "aviator:admin_export_report" %}?type=rounds';
+}
+</script>
+{% endblock %}

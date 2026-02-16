@@ -1,0 +1,295 @@
+﻿{% extends 'admin_base.html' %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Reports & Analytics</h1>
+    <p class="page-subtitle">Generate comprehensive reports for your platform</p>
+</div>
+
+<!-- Report Generator -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">Generate Custom Report</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Report Type</label>
+                    <select name="type" class="form-control" id="reportType">
+                        <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Daily Summary</option>
+                        <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>Weekly Summary</option>
+                        <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Monthly Summary</option>
+                        <option value="custom" {% if report_type == 'custom' %}selected{% endif %}>Custom Range</option>
+                        <option value="users" {% if report_type == 'users' %}selected{% endif %}>User Report</option>
+                        <option value="financial" {% if report_type == 'financial' %}selected{% endif %}>Financial Report</option>
+                        <option value="game" {% if report_type == 'game' %}selected{% endif %}>Game Performance</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-graph-up me-2"></i>Generate
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Reports -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon primary mb-3">
+                    <i class="bi bi-calendar-day"></i>
+                </div>
+                <h6>Today's Report</h6>
+                <p class="text-secondary small mb-3">Complete daily summary</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="generateQuickReport('daily')">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon success mb-3">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <h6>This Week</h6>
+                <p class="text-secondary small mb-3">7-day performance</p>
+                <button class="btn btn-sm btn-outline-success" onclick="generateQuickReport('weekly')">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon warning mb-3">
+                    <i class="bi bi-calendar-month"></i>
+                </div>
+                <h6>This Month</h6>
+                <p class="text-secondary small mb-3">Monthly overview</p>
+                <button class="btn btn-sm btn-outline-warning" onclick="generateQuickReport('monthly')">
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon info mb-3">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h6>User Report</h6>
+                <p class="text-secondary small mb-3">All users data</p>
+                <button class="btn btn-sm btn-outline-info" onclick="exportReport('users')">
+                    Export CSV
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">Export Data</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary" onclick="exportReport('users')">
+                        <i class="bi bi-people me-2"></i>
+                        Export All Users
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-success" onclick="exportReport('transactions')">
+                        <i class="bi bi-wallet2 me-2"></i>
+                        Export Transactions
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-warning" onclick="exportReport('bets')">
+                        <i class="bi bi-controller me-2"></i>
+                        Export All Bets
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-info" onclick="exportReport('rounds')">
+                        <i class="bi bi-broadcast me-2"></i>
+                        Export Game Rounds
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-danger" onclick="exportReport('withdrawals')">
+                        <i class="bi bi-cash-stack me-2"></i>
+                        Export Withdrawals
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="d-grid">
+                    <button class="btn btn-outline-secondary" onclick="exportReport('deposits')">
+                        <i class="bi bi-arrow-down-circle me-2"></i>
+                        Export Deposits
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Templates -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Scheduled Reports</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Report Name</th>
+                        <th>Type</th>
+                        <th>Frequency</th>
+                        <th>Last Generated</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Daily Revenue Report</strong></td>
+                        <td><span class="badge bg-primary">Financial</span></td>
+                        <td>Daily at 00:00</td>
+                        <td>Today, 12:00 AM</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weekly User Activity</strong></td>
+                        <td><span class="badge bg-info">Users</span></td>
+                        <td>Weekly (Monday)</td>
+                        <td>Feb 10, 2026</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Monthly Performance</strong></td>
+                        <td><span class="badge bg-warning">Game</span></td>
+                        <td>Monthly (1st)</td>
+                        <td>Feb 1, 2026</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-primary">
+                <i class="bi bi-plus-circle me-2"></i>
+                Create New Scheduled Report
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateQuickReport(type) {
+    const today = new Date().toISOString().split('T')[0];
+    let startDate = today;
+    
+    if (type === 'weekly') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        startDate = weekAgo.toISOString().split('T')[0];
+    } else if (type === 'monthly') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        startDate = monthAgo.toISOString().split('T')[0];
+    }
+    
+    window.location.href = `?type=${type}&start_date=${startDate}&end_date=${today}`;
+}
+
+function exportReport(type) {
+    window.location.href = `{% url 'aviator:admin_export_report' %}?type=${type}`;
+}
+</script>
+{% endblock %}
