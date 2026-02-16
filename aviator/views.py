@@ -124,7 +124,8 @@ def login_view(request):
 def logout_view(request):
     """User logout view"""
     logout(request)
-    return redirect('login')
+    return redirect('aviator:login')
+
 
 
 # Main Game Views

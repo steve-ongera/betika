@@ -119,6 +119,110 @@
             color: var(--primary-color);
         }
         
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+            display: none;
+        }
+        
+        .profile-toggle {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        
+        .profile-toggle:hover {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+        
+        .profile-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .profile-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-menu-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--dark-bg), var(--hover-bg));
+        }
+        
+        .profile-menu-phone {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .profile-menu-phone i {
+            color: var(--primary-color);
+        }
+        
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+        
+        .profile-menu-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-primary);
+        }
+        
+        .profile-menu-item i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+        
+        .profile-menu-item.logout {
+            color: var(--danger-color);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .profile-menu-item.logout:hover {
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        
         /* Desktop Navigation */
         .desktop-nav {
             display: flex;
@@ -554,6 +658,10 @@
                 display: block;
             }
             
+            .profile-dropdown {
+                display: block;
+            }
+            
             .header-container {
                 padding: 0 1rem;
             }
@@ -778,6 +886,40 @@
                 <a href="{% url 'aviator:register' %}" class="btn-auth btn-register">Register</a>
             </div>
             {% endif %}
+            
+            <!-- Mobile Profile Dropdown (visible on small screens only) -->
+            <div class="profile-dropdown">
+                <button class="profile-toggle" id="profileToggle">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+                <div class="profile-menu" id="profileMenu">
+                    {% if user.is_authenticated %}
+                    <div class="profile-menu-header">
+                        <div class="profile-menu-phone">
+                            <i class="bi bi-phone"></i>
+                            <span>{{ user.phone_number }}</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'aviator:profile' %}" class="profile-menu-item">
+                        <i class="bi bi-person-circle"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <button class="profile-menu-item logout" onclick="window.location.href='{% url 'aviator:logout' %}'">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </button>
+                    {% else %}
+                    <a href="{% url 'aviator:login' %}" class="profile-menu-item">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Login</span>
+                    </a>
+                    <a href="{% url 'aviator:register' %}" class="profile-menu-item">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Register</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </header>
     
@@ -879,6 +1021,29 @@
             
             if (sidebarOverlay) {
                 sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Profile Dropdown Toggle
+            const profileToggle = document.getElementById('profileToggle');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            if (profileToggle && profileMenu) {
+                profileToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileMenu.classList.toggle('active');
+                });
+                
+                // Close profile menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!profileMenu.contains(e.target) && !profileToggle.contains(e.target)) {
+                        profileMenu.classList.remove('active');
+                    }
+                });
+                
+                // Prevent menu from closing when clicking inside
+                profileMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
             }
             
             // Highlight Active Nav Link
