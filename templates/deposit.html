@@ -9,6 +9,28 @@
         margin: 2rem auto;
     }
     
+    .current-balance-card {
+        background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
+    
+    .balance-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .balance-value {
+        font-family: 'Sora', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--success-color);
+    }
+    
     .deposit-card {
         background-color: var(--card-bg);
         border-radius: 16px;
@@ -515,6 +537,12 @@
 
 {% block content %}
 <div class="deposit-container">
+    <!-- Current Balance Display -->
+    <div class="current-balance-card">
+        <div class="balance-label">Your Current Balance</div>
+        <div class="balance-value" id="currentBalance">{{ user.balance|floatformat:2 }} KES</div>
+    </div>
+    
     <div class="deposit-card">
         <div class="deposit-header">
             <h1 class="deposit-title">Deposit Funds</h1>
@@ -654,6 +682,10 @@
             <div class="modal-phone-number" id="successAmount"></div>
         </div>
         <div class="modal-phone">
+            <div class="modal-phone-label">Previous Balance</div>
+            <div class="modal-phone-number" id="successOldBalance"></div>
+        </div>
+        <div class="modal-phone">
             <div class="modal-phone-label">New Balance</div>
             <div class="modal-phone-number" id="successBalance"></div>
         </div>
@@ -688,7 +720,8 @@
 <script>
     let selectedAmount = 100;
     let currentTransactionId = null;
-    let checkStatusInterval = null;
+    
+    console.log('🚀 Deposit page initialized');
     
     function selectAmount(amount) {
         selectedAmount = amount;
@@ -700,6 +733,8 @@
             btn.classList.remove('selected');
         });
         event.target.closest('.quick-deposit-btn').classList.add('selected');
+        
+        console.log(`💰 Selected amount: ${amount} KES`);
     }
     
     function updateDepositInfo() {
@@ -713,17 +748,13 @@
     function showModal(modalId) {
         document.getElementById(modalId).classList.add('active');
         document.body.style.overflow = 'hidden';
+        console.log(`📱 Showing modal: ${modalId}`);
     }
     
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('active');
         document.body.style.overflow = '';
-        
-        // Stop checking status if STK modal is closed
-        if (modalId === 'stkModal' && checkStatusInterval) {
-            clearInterval(checkStatusInterval);
-            checkStatusInterval = null;
-        }
+        console.log(`✖️ Closing modal: ${modalId}`);
     }
     
     function closeSuccessModal() {
@@ -740,6 +771,8 @@
         const amount = selectedAmount;
         const phoneNumber = document.getElementById('phoneNumber').value;
         const depositBtn = document.getElementById('depositBtn');
+        
+        console.log(`🏁 Initiating deposit: ${amount} KES to ${phoneNumber}`);
         
         // Validation
         if (amount < 10) {
@@ -760,13 +793,16 @@
         // Disable button
         depositBtn.disabled = true;
         const originalText = depositBtn.innerHTML;
-        depositBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>PROCESSING...</span>';
+        depositBtn.innerHTML = '<div class="loading-spinner" style="width: 25px; height: 25px; border-width: 3px; margin: 0;"></div><span>PROCESSING...</span>';
         
         try {
+            console.log('📤 Sending deposit request...');
             const result = await apiCall('{% url "aviator:api_initiate_deposit" %}', 'POST', {
                 amount: amount,
                 phone_number: phoneNumber
             });
+            
+            console.log('📥 Deposit response:', result);
             
             if (result.success) {
                 // Show STK push modal
@@ -774,17 +810,20 @@
                 document.getElementById('modalAmount').textContent = formatCurrency(amount) + ' KES';
                 currentTransactionId = result.transaction_id;
                 
+                console.log(`✅ Transaction initiated: ${currentTransactionId}`);
+                
                 showModal('stkModal');
                 
                 // Simulate M-Pesa payment process (3-5 seconds)
                 simulateMpesaPayment(result.transaction_id, amount);
             } else {
+                console.error('❌ Deposit initiation failed:', result.message);
                 showToast(result.message, 'error');
                 depositBtn.disabled = false;
                 depositBtn.innerHTML = originalText;
             }
         } catch (error) {
-            console.error('Deposit error:', error);
+            console.error('💥 Deposit error:', error);
             showToast('Network error. Please try again.', 'error');
             depositBtn.disabled = false;
             depositBtn.innerHTML = originalText;
@@ -795,42 +834,76 @@
         // Simulate M-Pesa payment delay (3-4 seconds)
         const delay = 3000 + Math.random() * 1000;
         
+        console.log(`⏱️ Simulating M-Pesa payment (${Math.round(delay)}ms delay)...`);
+        
         setTimeout(async () => {
             // Simulate 95% success rate
             const isSuccessful = Math.random() < 0.95;
             
-            if (isSuccessful) {
-                // Update user balance
-                await updateBalance();
+            console.log(`🎲 Payment simulation result: ${isSuccessful ? 'SUCCESS' : 'FAILED'}`);
+            
+            try {
+                console.log('📤 Completing deposit transaction...');
                 
-                // Get new balance
-                const balanceResult = await apiCall('{% url "aviator:api_user_balance" %}');
+                // Call complete deposit API
+                const completeResult = await apiCall('{% url "aviator:api_complete_deposit" %}', 'POST', {
+                    transaction_id: transactionId,
+                    success: isSuccessful
+                });
                 
-                // Close STK modal
-                closeModal('stkModal');
+                console.log('📥 Complete deposit response:', completeResult);
                 
-                // Show success modal
-                document.getElementById('successAmount').textContent = formatCurrency(amount) + ' KES';
-                if (balanceResult.success) {
-                    document.getElementById('successBalance').textContent = formatCurrency(balanceResult.total_balance) + ' KES';
+                if (completeResult.success) {
+                    // Close STK modal
+                    closeModal('stkModal');
+                    
+                    console.log(`💰 Balance updated: ${completeResult.old_balance} → ${completeResult.new_balance}`);
+                    
+                    // Update current balance display
+                    document.getElementById('currentBalance').textContent = formatCurrency(completeResult.new_balance) + ' KES';
+                    
+                    // Update header balance
+                    await updateBalance();
+                    
+                    // Show success modal
+                    document.getElementById('successAmount').textContent = formatCurrency(amount) + ' KES';
+                    document.getElementById('successOldBalance').textContent = formatCurrency(completeResult.old_balance) + ' KES';
+                    document.getElementById('successBalance').textContent = formatCurrency(completeResult.new_balance) + ' KES';
+                    
+                    showModal('successModal');
+                    
+                    // Show success toast
+                    showToast(`✅ Successfully deposited ${formatCurrency(amount)} KES`, 'success');
+                    
+                    // Re-enable deposit button
+                    const depositBtn = document.getElementById('depositBtn');
+                    depositBtn.disabled = false;
+                    depositBtn.innerHTML = '<i class="bi bi-phone-fill"></i><span>DEPOSIT VIA M-PESA</span>';
+                } else {
+                    // Close STK modal
+                    closeModal('stkModal');
+                    
+                    console.error('❌ Deposit completion failed:', completeResult.message);
+                    
+                    // Show error modal
+                    document.getElementById('errorMessage').textContent = 
+                        completeResult.message || 'Transaction was cancelled or timed out. Please ensure you enter your M-Pesa PIN within 60 seconds.';
+                    showModal('errorModal');
+                    
+                    // Re-enable deposit button
+                    const depositBtn = document.getElementById('depositBtn');
+                    depositBtn.disabled = false;
+                    depositBtn.innerHTML = '<i class="bi bi-phone-fill"></i><span>DEPOSIT VIA M-PESA</span>';
                 }
+            } catch (error) {
+                console.error('💥 Payment completion error:', error);
                 
-                showModal('successModal');
-                
-                // Show success toast
-                showToast(`Successfully deposited ${formatCurrency(amount)} KES`, 'success');
-                
-                // Re-enable deposit button
-                const depositBtn = document.getElementById('depositBtn');
-                depositBtn.disabled = false;
-                depositBtn.innerHTML = '<i class="bi bi-phone-fill"></i><span>DEPOSIT VIA M-PESA</span>';
-            } else {
                 // Close STK modal
                 closeModal('stkModal');
                 
                 // Show error modal
                 document.getElementById('errorMessage').textContent = 
-                    'Transaction was cancelled or timed out. Please ensure you enter your M-Pesa PIN within 60 seconds.';
+                    'An error occurred while processing your payment. Please try again.';
                 showModal('errorModal');
                 
                 // Re-enable deposit button
@@ -852,10 +925,13 @@
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('📄 DOM loaded, initializing deposit page...');
         updateDepositInfo();
         
         // Select first quick amount by default
         document.querySelector('.quick-deposit-btn').classList.add('selected');
+        
+        console.log('✅ Deposit page ready');
     });
 </script>
 {% endblock %}
