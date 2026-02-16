@@ -4,43 +4,68 @@
 
 {% block extra_css %}
 <style>
+    /* Hero Section */
     .hero-section {
         background: linear-gradient(135deg, var(--primary-color), #ff7043);
-        border-radius: 20px;
-        padding: 3rem 2rem;
+        border-radius: 16px;
+        padding: 4rem 2rem;
         text-align: center;
         color: white;
-        margin-bottom: 2rem;
+        margin-bottom: 3rem;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 10px 40px rgba(255, 87, 34, 0.3);
     }
     
     .hero-section::before {
-        content: "✈️";
+        content: "";
         position: absolute;
-        font-size: 15rem;
-        opacity: 0.1;
-        top: -50%;
-        right: -10%;
-        animation: float 6s ease-in-out infinite;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        top: -250px;
+        right: -250px;
+        animation: float 8s ease-in-out infinite;
     }
     
     @keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(5deg); }
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-20px, 20px) scale(1.1); }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: plane-fly 3s ease-in-out infinite;
+    }
+    
+    @keyframes plane-fly {
+        0%, 100% { transform: translateX(0) rotate(-5deg); }
+        50% { transform: translateX(20px) rotate(5deg); }
     }
     
     .hero-title {
+        font-family: 'Sora', sans-serif;
         font-size: 3rem;
-        font-weight: bold;
+        font-weight: 700;
         margin-bottom: 1rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        letter-spacing: -1px;
     }
     
     .hero-subtitle {
-        font-size: 1.25rem;
-        opacity: 0.9;
+        font-size: 1.15rem;
+        opacity: 0.95;
         margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
     }
     
     .cta-buttons {
@@ -51,31 +76,36 @@
     }
     
     .cta-btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        font-weight: bold;
-        border-radius: 10px;
+        padding: 1rem 2.5rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        border-radius: 12px;
         border: none;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .cta-btn-primary {
         background-color: white;
         color: var(--primary-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     
     .cta-btn-primary:hover {
-        transform: scale(1.05);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        color: var(--primary-dark);
     }
     
     .cta-btn-secondary {
-        background-color: transparent;
+        background-color: rgba(255,255,255,0.15);
         color: white;
         border: 2px solid white;
+        backdrop-filter: blur(10px);
     }
     
     .cta-btn-secondary:hover {
@@ -83,119 +113,393 @@
         color: var(--primary-color);
     }
     
+    /* Stats Banner */
+    .stats-banner {
+        background: linear-gradient(135deg, var(--secondary-color), var(--card-bg));
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+    }
+    
+    .stat-value {
+        font-family: 'Sora', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    /* Features Section */
     .features-section {
         margin-bottom: 3rem;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .section-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--text-primary);
+    }
+    
+    .section-subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
     }
     
     .feature-card {
         background-color: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 15px;
-        padding: 2rem;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
         text-align: center;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), #ff7043);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
     }
     
     .feature-card:hover {
-        transform: translateY(-10px);
+        transform: translateY(-8px);
         border-color: var(--primary-color);
         box-shadow: 0 10px 30px rgba(255, 87, 34, 0.2);
     }
     
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+    
     .feature-icon {
         font-size: 3rem;
-        margin-bottom: 1rem;
+        color: var(--primary-color);
+        margin-bottom: 1.25rem;
         display: inline-block;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1);
     }
     
     .feature-title {
+        font-family: 'Sora', sans-serif;
         font-size: 1.25rem;
-        font-weight: bold;
+        font-weight: 600;
         margin-bottom: 0.75rem;
-        color: var(--primary-color);
+        color: var(--text-primary);
     }
     
     .feature-desc {
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.7;
+        font-size: 0.95rem;
     }
     
+    /* How to Play Section */
     .how-to-play {
-        background-color: var(--card-bg);
+        background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
         border: 1px solid var(--border-color);
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .how-to-play .section-title {
+        text-align: center;
+        margin-bottom: 2.5rem;
     }
     
     .step-card {
         display: flex;
         align-items: start;
         gap: 1.5rem;
-        padding: 1.5rem;
+        padding: 1.75rem;
         background-color: var(--dark-bg);
-        border-radius: 10px;
-        margin-bottom: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+    
+    .step-card:hover {
+        background-color: var(--hover-bg);
+        border-color: var(--primary-color);
+        transform: translateX(10px);
     }
     
     .step-number {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color), #ff7043);
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        font-size: 1.25rem;
+        font-weight: 700;
+        font-size: 1.5rem;
         flex-shrink: 0;
+        box-shadow: 0 4px 15px rgba(255, 87, 34, 0.4);
     }
     
-    .stats-banner {
-        background: linear-gradient(135deg, var(--secondary-color), var(--dark-bg));
-        border-radius: 15px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid var(--border-color);
+    .step-content h5 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
     }
     
-    .stat-item {
-        text-align: center;
-    }
-    
-    .stat-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: var(--primary-color);
-    }
-    
-    .stat-label {
+    .step-content p {
         color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+    
+    /* CTA Section */
+    .final-cta {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, var(--card-bg), var(--secondary-color));
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    
+    .final-cta h4 {
+        font-family: 'Sora', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .final-cta p {
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        margin-bottom: 2rem;
+    }
+    
+    .bonus-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--success-color), #66bb6a);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        margin-top: 1rem;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Trust Indicators */
+    .trust-section {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .trust-icon {
+        font-size: 2rem;
+        color: var(--success-color);
+    }
+    
+    .trust-text h6 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+    
+    .trust-text p {
+        color: var(--text-secondary);
+        margin: 0;
         font-size: 0.9rem;
     }
     
-    @media (max-width: 768px) {
+    /* Responsive Design */
+    @media (max-width: 991px) {
+        .hero-section {
+            padding: 3rem 1.5rem;
+        }
+        
         .hero-title {
-            font-size: 2rem;
+            font-size: 2.25rem;
         }
         
         .hero-subtitle {
             font-size: 1rem;
         }
         
-        .cta-btn {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
+        .stats-banner {
+            padding: 2rem 1rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hero-icon {
+            font-size: 3rem;
         }
         
-        .feature-icon {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 0.95rem;
+        }
+        
+        .cta-btn {
+            padding: 0.875rem 2rem;
+            font-size: 0.95rem;
+        }
+        
+        .section-title {
+            font-size: 1.75rem;
+        }
+        
+        .stat-icon {
             font-size: 2rem;
         }
         
         .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+        }
+        
+        .feature-card {
+            padding: 1.5rem 1.25rem;
+        }
+        
+        .how-to-play {
+            padding: 2rem 1.25rem;
+        }
+        
+        .step-card {
+            padding: 1.25rem;
+            gap: 1rem;
+        }
+        
+        .step-number {
+            width: 45px;
+            height: 45px;
+            font-size: 1.25rem;
+        }
+        
+        .final-cta {
+            padding: 2rem 1.25rem;
+        }
+        
+        .final-cta h4 {
             font-size: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hero-section {
+            padding: 2.5rem 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-icon {
+            font-size: 2.5rem;
+        }
+        
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .cta-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .stats-banner {
+            padding: 1.5rem 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-item {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .stat-icon {
+            font-size: 1.75rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+        
+        .section-subtitle {
+            font-size: 0.9rem;
+        }
+        
+        .step-card:hover {
+            transform: translateX(0);
         }
     }
 </style>
@@ -205,48 +509,69 @@
 <div class="container-fluid">
     <!-- Hero Section -->
     <div class="hero-section">
-        <h1 class="hero-title">
-            <i class="bi bi-airplane-fill"></i> Aviator Game
-        </h1>
-        <p class="hero-subtitle">
-            Watch the multiplier soar! Cash out before the plane flies away
-        </p>
-        <div class="cta-buttons">
-            {% if user.is_authenticated %}
-                <a href="{% url 'aviator:game' %}" class="cta-btn cta-btn-primary">
-                    <i class="bi bi-controller"></i> Play Now
-                </a>
-                <a href="{% url 'aviator:deposit' %}" class="cta-btn cta-btn-secondary">
-                    <i class="bi bi-plus-circle"></i> Deposit
-                </a>
-            {% else %}
-                <a href="{% url 'aviator:register' %}" class="cta-btn cta-btn-primary">
-                    <i class="bi bi-person-plus-fill"></i> Sign Up Now
-                </a>
-                <a href="{% url 'aviator:login' %}" class="cta-btn cta-btn-secondary">
-                    <i class="bi bi-box-arrow-in-right"></i> Login
-                </a>
-            {% endif %}
+        <div class="hero-content">
+            <div class="hero-icon">
+                <i class="bi bi-airplane-fill"></i>
+            </div>
+            <h1 class="hero-title">
+                Aviator - Fast-Paced Betting Game
+            </h1>
+            <p class="hero-subtitle">
+                Watch the multiplier soar in real-time. Place your bet, cash out before the plane flies away, and multiply your winnings up to 100x!
+            </p>
+            <div class="cta-buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'aviator:game' %}" class="cta-btn cta-btn-primary">
+                        <i class="bi bi-controller"></i>
+                        <span>Start Playing</span>
+                    </a>
+                    <a href="{% url 'aviator:deposit' %}" class="cta-btn cta-btn-secondary">
+                        <i class="bi bi-wallet2"></i>
+                        <span>Add Funds</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'aviator:register' %}" class="cta-btn cta-btn-primary">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Create Account</span>
+                    </a>
+                    <a href="{% url 'aviator:login' %}" class="cta-btn cta-btn-secondary">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Sign In</span>
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
     
     <!-- Stats Banner -->
     <div class="stats-banner">
-        <div class="row text-center">
-            <div class="col-md-3 col-6 stat-item mb-3 mb-md-0">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 col-6 stat-item mb-3 mb-lg-0">
+                <div class="stat-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
                 <div class="stat-value" id="totalPlayers">1,234</div>
                 <div class="stat-label">Active Players</div>
             </div>
-            <div class="col-md-3 col-6 stat-item mb-3 mb-md-0">
+            <div class="col-lg-3 col-md-6 col-6 stat-item mb-3 mb-lg-0">
+                <div class="stat-icon">
+                    <i class="bi bi-controller"></i>
+                </div>
                 <div class="stat-value" id="gamesPlayed">45,678</div>
                 <div class="stat-label">Games Played</div>
             </div>
-            <div class="col-md-3 col-6 stat-item">
-                <div class="stat-value" id="totalWinnings">5.2M</div>
+            <div class="col-lg-3 col-md-6 col-6 stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <div class="stat-value">5.2M</div>
                 <div class="stat-label">Total Winnings (KES)</div>
             </div>
-            <div class="col-md-3 col-6 stat-item">
-                <div class="stat-value" id="biggestWin">234K</div>
+            <div class="col-lg-3 col-md-6 col-6 stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <div class="stat-value">234K</div>
                 <div class="stat-label">Biggest Win (KES)</div>
             </div>
         </div>
@@ -254,64 +579,119 @@
     
     <!-- Features Section -->
     <div class="features-section">
-        <h3 class="text-center mb-4">Why Play Aviator?</h3>
+        <div class="section-header">
+            <h2 class="section-title">Why Choose Aviator?</h2>
+            <p class="section-subtitle">Experience the thrill of instant wins with our cutting-edge gaming platform</p>
+        </div>
+        
         <div class="row g-4">
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <div class="feature-title">Instant Gameplay</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <div class="feature-title">Lightning Fast Gameplay</div>
                     <div class="feature-desc">
-                        Fast-paced rounds every few seconds. Quick bets, quick results, quick wins!
+                        New rounds start every few seconds. Experience non-stop action with instant results and rapid betting cycles.
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <div class="feature-title">Real Money Wins</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="feature-title">Massive Win Potential</div>
                     <div class="feature-desc">
-                        Win real money with multipliers up to 100x! Cash out anytime before the plane flies away.
+                        Multiply your bet by up to 100x! The longer you wait, the bigger your potential payout. Timing is everything.
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">📱</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-phone-fill"></i>
+                    </div>
                     <div class="feature-title">M-Pesa Integration</div>
                     <div class="feature-desc">
-                        Instant deposits and withdrawals via M-Pesa. Safe, secure, and convenient.
+                        Seamless deposits and withdrawals via M-Pesa. Your funds are processed instantly with bank-level security.
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">🎮</div>
-                    <div class="feature-title">Simple to Play</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <div class="feature-title">Simple & Intuitive</div>
                     <div class="feature-desc">
-                        Easy to learn, exciting to master. Place your bet and cash out before it's too late!
+                        No complicated rules or strategies needed. Place your bet, watch the multiplier grow, and cash out when you're ready.
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <div class="feature-title">Provably Fair</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check-fill"></i>
+                    </div>
+                    <div class="feature-title">Provably Fair Gaming</div>
                     <div class="feature-desc">
-                        Transparent and fair gameplay. Every round is verifiable and secure.
+                        Every round is cryptographically secured and verifiable. Complete transparency ensures fair play for all participants.
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <div class="feature-title">Live Chat</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-chat-square-dots-fill"></i>
+                    </div>
+                    <div class="feature-title">Live Community Chat</div>
                     <div class="feature-desc">
-                        Chat with other players in real-time. Share strategies and celebrate wins together!
+                        Connect with players in real-time. Share your wins, discuss strategies, and be part of an active gaming community.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trust Section -->
+    <div class="trust-section">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+                    <div class="trust-text">
+                        <h6>Secure Platform</h6>
+                        <p>Bank-grade encryption protects your data</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="trust-text">
+                        <h6>24/7 Availability</h6>
+                        <p>Play anytime, anywhere on any device</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <div class="trust-text">
+                        <h6>Customer Support</h6>
+                        <p>Dedicated team ready to assist you</p>
                     </div>
                 </div>
             </div>
@@ -320,66 +700,68 @@
     
     <!-- How to Play Section -->
     <div class="how-to-play">
-        <h3 class="mb-4">
-            <i class="bi bi-info-circle-fill"></i> How to Play
-        </h3>
+        <h2 class="section-title">
+            <i class="bi bi-question-circle-fill"></i> How to Play Aviator
+        </h2>
         
         <div class="step-card">
             <div class="step-number">1</div>
-            <div>
-                <h5 class="mb-2">Place Your Bet</h5>
-                <p class="text-secondary mb-0">
-                    Choose your bet amount before the round starts. You can set an auto cash-out multiplier if you want.
+            <div class="step-content">
+                <h5>Place Your Bet</h5>
+                <p>
+                    Enter your desired bet amount before the round begins. Set an optional auto cash-out multiplier for automatic wins at your target.
                 </p>
             </div>
         </div>
         
         <div class="step-card">
             <div class="step-number">2</div>
-            <div>
-                <h5 class="mb-2">Watch the Multiplier Rise</h5>
-                <p class="text-secondary mb-0">
-                    The plane takes off and the multiplier starts increasing from 1.00x upwards. The longer it flies, the higher the multiplier!
+            <div class="step-content">
+                <h5>Watch the Multiplier Climb</h5>
+                <p>
+                    The plane takes off and the multiplier increases in real-time from 1.00x upwards. The longer it stays airborne, the higher your potential winnings.
                 </p>
             </div>
         </div>
         
         <div class="step-card">
             <div class="step-number">3</div>
-            <div>
-                <h5 class="mb-2">Cash Out Before It Flies Away</h5>
-                <p class="text-secondary mb-0">
-                    Click the "Cash Out" button to secure your winnings at the current multiplier. But be quick - the plane can fly away at any moment!
+            <div class="step-content">
+                <h5>Cash Out Before It Flies Away</h5>
+                <p>
+                    Hit the "Cash Out" button to lock in your winnings at the current multiplier. Be strategic - the plane can fly away at any moment without warning!
                 </p>
             </div>
         </div>
         
         <div class="step-card">
             <div class="step-number">4</div>
-            <div>
-                <h5 class="mb-2">Win Big!</h5>
-                <p class="text-secondary mb-0">
-                    Your bet is multiplied by the cash-out multiplier. The higher you wait, the bigger the potential win - but also the bigger the risk!
+            <div class="step-content">
+                <h5>Collect Your Winnings</h5>
+                <p>
+                    Your bet amount is multiplied by your cash-out multiplier. Winnings are credited instantly to your account balance. The higher the multiplier, the bigger your profit!
                 </p>
             </div>
         </div>
     </div>
     
-    <!-- CTA Section -->
-    <div class="text-center mb-4">
+    <!-- Final CTA Section -->
+    <div class="final-cta">
         {% if not user.is_authenticated %}
-        <h4 class="mb-3">Ready to Start Winning?</h4>
-        <p class="text-secondary mb-4">Join thousands of players and experience the thrill!</p>
+        <h4>Ready to Experience the Thrill?</h4>
+        <p>Join thousands of players winning real money every day. Get started in seconds!</p>
         <a href="{% url 'aviator:register' %}" class="btn btn-primary btn-lg px-5">
             <i class="bi bi-person-plus-fill"></i> Create Free Account
         </a>
-        <p class="text-secondary small mt-3">
-            🎁 Get 50 KES Welcome Bonus on Registration!
-        </p>
+        <div class="bonus-badge">
+            <i class="bi bi-gift-fill"></i>
+            <span>Get 50 KES Welcome Bonus on Registration</span>
+        </div>
         {% else %}
-        <h4 class="mb-3">Ready to Play?</h4>
+        <h4>Your Next Big Win Awaits!</h4>
+        <p>The plane is ready for takeoff. Will you cash out in time?</p>
         <a href="{% url 'aviator:game' %}" class="btn btn-primary btn-lg px-5">
-            <i class="bi bi-controller"></i> Play Aviator Now
+            <i class="bi bi-controller"></i> Start Playing Now
         </a>
         {% endif %}
     </div>
@@ -391,7 +773,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Animate stats on load
     animateValue('totalPlayers', 0, 1234, 2000);
-    animateValue('gamesPlayed', 0, 45678, 2000);
+    animateValue('gamesPlayed', 0, 45678, 2500);
     
     function animateValue(id, start, end, duration) {
         const element = document.getElementById(id);
@@ -411,6 +793,29 @@ document.addEventListener('DOMContentLoaded', function() {
             element.textContent = current.toLocaleString();
         }, stepTime);
     }
+    
+    // Add intersection observer for scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all feature cards and step cards
+    document.querySelectorAll('.feature-card, .step-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
 });
 </script>
 {% endblock %}
