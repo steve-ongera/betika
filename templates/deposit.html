@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Deposit - Aviator Game{% endblock %}
+{% block title %}Deposit Funds - Aviator Game{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -11,136 +11,504 @@
     
     .deposit-card {
         background-color: var(--card-bg);
-        border-radius: 15px;
-        padding: 2rem;
-        border: 2px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .deposit-header {
+        text-align: center;
+        margin-bottom: 2rem;
     }
     
     .deposit-title {
-        font-size: 1.8rem;
+        font-family: 'Sora', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
-        color: var(--primary-color);
+        color: var(--text-primary);
     }
     
-    .mpesa-logo {
-        text-align: center;
-        font-size: 3rem;
-        margin: 1rem 0;
+    .deposit-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .mpesa-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: linear-gradient(135deg, #00a86b, #00c853);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
+    }
+    
+    .mpesa-badge i {
+        font-size: 1.5rem;
+    }
+    
+    .amount-section {
+        margin: 2rem 0;
+    }
+    
+    .section-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1rem;
     }
     
     .quick-deposits {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin: 2rem 0;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
     }
     
     .quick-deposit-btn {
-        padding: 1.5rem;
+        padding: 1.25rem 0.75rem;
         background-color: var(--dark-bg);
         border: 2px solid var(--border-color);
-        border-radius: 10px;
+        border-radius: 12px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         text-align: center;
     }
     
     .quick-deposit-btn:hover {
         border-color: var(--primary-color);
         background-color: var(--hover-bg);
+        transform: translateY(-2px);
     }
     
     .quick-deposit-btn.selected {
-        border-color: var(--primary-color);
-        background-color: var(--primary-color);
+        border-color: var(--success-color);
+        background: linear-gradient(135deg, rgba(0, 168, 107, 0.2), rgba(0, 200, 83, 0.2));
     }
     
     .deposit-amount {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: var(--success-color);
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: 'Sora', sans-serif;
+    }
+    
+    .amount-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+    
+    .custom-amount-group {
+        margin-bottom: 1.5rem;
     }
     
     .custom-amount {
         width: 100%;
-        padding: 1rem;
-        font-size: 1.5rem;
+        padding: 1rem 1.25rem;
+        font-size: 1.35rem;
+        font-weight: 600;
         text-align: center;
         background-color: var(--dark-bg);
         border: 2px solid var(--border-color);
-        border-radius: 10px;
-        color: white;
-        margin: 1rem 0;
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-family: 'Sora', sans-serif;
+        transition: all 0.3s ease;
     }
     
     .custom-amount:focus {
         outline: none;
-        border-color: var(--primary-color);
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 168, 107, 0.15);
     }
     
-    .deposit-info {
+    .phone-input-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .phone-input-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .phone-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
         background-color: var(--dark-bg);
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 0;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
     }
     
-    .info-row {
+    .phone-input:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 168, 107, 0.15);
+    }
+    
+    .deposit-summary {
+        background-color: var(--dark-bg);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        border: 1px solid var(--border-color);
+    }
+    
+    .summary-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.5rem;
+        align-items: center;
+        padding: 0.75rem 0;
         color: var(--text-secondary);
+        font-size: 0.95rem;
     }
     
-    .info-row .value {
+    .summary-row:not(:last-child) {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-row.total {
+        padding-top: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .summary-row .label {
+        font-weight: 500;
+    }
+    
+    .summary-row .value {
         color: var(--text-primary);
-        font-weight: bold;
+        font-weight: 700;
+        font-family: 'Sora', sans-serif;
+    }
+    
+    .summary-row.total .value {
+        color: var(--success-color);
+        font-size: 1.35rem;
     }
     
     .deposit-btn {
         width: 100%;
-        padding: 1.2rem;
-        background: linear-gradient(135deg, var(--success-color), #66bb6a);
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #00a86b, #00c853);
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
+        font-size: 1.1rem;
+        font-weight: 700;
         cursor: pointer;
-        margin-top: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
     }
     
-    .deposit-btn:hover {
+    .deposit-btn:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        box-shadow: 0 6px 20px rgba(0, 168, 107, 0.4);
     }
     
     .deposit-btn:disabled {
         background: var(--border-color);
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
     }
     
-    .instructions {
-        background-color: rgba(255, 152, 0, 0.1);
+    .deposit-btn i {
+        font-size: 1.3rem;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
         border-left: 4px solid var(--warning-color);
-        padding: 1rem;
+        padding: 1.25rem;
         margin-top: 2rem;
-        border-radius: 5px;
+        border-radius: 8px;
     }
     
-    .instructions h4 {
+    .info-box-title {
         color: var(--warning-color);
-        margin-bottom: 0.5rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
     }
     
-    .instructions ol {
+    .info-box ol {
         padding-left: 1.5rem;
         color: var(--text-secondary);
+        margin: 0;
     }
     
-    .instructions li {
+    .info-box li {
         margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+    
+    /* Modal Styles */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .modal-backdrop.active {
+        display: flex;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .modal-content {
+        background-color: var(--card-bg);
+        border-radius: 16px;
+        padding: 2.5rem;
+        max-width: 450px;
+        width: 90%;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+    
+    @keyframes slideUp {
+        from { 
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to { 
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .modal-icon {
+        text-align: center;
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        animation: bounce 1s ease infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .modal-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .modal-message {
+        text-align: center;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    
+    .modal-phone {
+        background-color: var(--dark-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .modal-phone-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .modal-phone-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--success-color);
+        font-family: 'Sora', sans-serif;
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top: 4px solid var(--success-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 1.5rem auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .modal-btn {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-btn-success {
+        background: linear-gradient(135deg, var(--success-color), #66bb6a);
+        color: white;
+    }
+    
+    .modal-btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .modal-btn-secondary {
+        background-color: var(--dark-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        margin-top: 0.75rem;
+    }
+    
+    .modal-btn-secondary:hover {
+        background-color: var(--hover-bg);
+    }
+    
+    .success-checkmark {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background-color: var(--success-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scaleIn 0.5s ease;
+    }
+    
+    @keyframes scaleIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .success-checkmark i {
+        font-size: 3rem;
+        color: white;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .deposit-card {
+            padding: 2rem 1.5rem;
+        }
+        
+        .deposit-title {
+            font-size: 1.75rem;
+        }
+        
+        .quick-deposits {
+            gap: 0.6rem;
+        }
+        
+        .quick-deposit-btn {
+            padding: 1rem 0.5rem;
+        }
+        
+        .deposit-amount {
+            font-size: 1.2rem;
+        }
+        
+        .modal-content {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .deposit-container {
+            margin: 1rem auto;
+        }
+        
+        .deposit-card {
+            padding: 1.5rem 1rem;
+        }
+        
+        .deposit-title {
+            font-size: 1.5rem;
+        }
+        
+        .mpesa-badge {
+            font-size: 1rem;
+            padding: 0.65rem 1.25rem;
+        }
+        
+        .quick-deposits {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .quick-deposit-btn {
+            padding: 0.875rem 0.5rem;
+        }
+        
+        .deposit-amount {
+            font-size: 1.1rem;
+        }
+        
+        .amount-label {
+            font-size: 0.75rem;
+        }
+        
+        .custom-amount {
+            font-size: 1.2rem;
+            padding: 0.875rem 1rem;
+        }
+        
+        .modal-content {
+            padding: 1.75rem 1.25rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+        }
+        
+        .modal-icon {
+            font-size: 3rem;
+        }
     }
 </style>
 {% endblock %}
@@ -148,82 +516,170 @@
 {% block content %}
 <div class="deposit-container">
     <div class="deposit-card">
-        <h1 class="deposit-title">💰 Deposit Funds</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-            Add money to your account via M-Pesa
-        </p>
-        
-        <div class="mpesa-logo">📱 M-PESA</div>
-        
-        <h3 style="margin-bottom: 1rem;">Select Amount</h3>
-        <div class="quick-deposits">
-            <div class="quick-deposit-btn" onclick="selectAmount(100)">
-                <div class="deposit-amount">100</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
-            </div>
-            <div class="quick-deposit-btn" onclick="selectAmount(500)">
-                <div class="deposit-amount">500</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
-            </div>
-            <div class="quick-deposit-btn" onclick="selectAmount(1000)">
-                <div class="deposit-amount">1,000</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
-            </div>
-            <div class="quick-deposit-btn" onclick="selectAmount(2000)">
-                <div class="deposit-amount">2,000</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
-            </div>
-            <div class="quick-deposit-btn" onclick="selectAmount(5000)">
-                <div class="deposit-amount">5,000</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
-            </div>
-            <div class="quick-deposit-btn" onclick="selectAmount(10000)">
-                <div class="deposit-amount">10,000</div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;">KES</div>
+        <div class="deposit-header">
+            <h1 class="deposit-title">Deposit Funds</h1>
+            <p class="deposit-subtitle">
+                Add money to your account instantly via M-Pesa
+            </p>
+            <div class="mpesa-badge">
+                <i class="bi bi-phone-fill"></i>
+                <span>M-PESA</span>
             </div>
         </div>
         
-        <h4 style="margin-bottom: 0.5rem;">Or Enter Custom Amount</h4>
-        <input type="number" id="customAmount" class="custom-amount" 
-               placeholder="Enter amount (Min: 10 KES)" 
-               min="10" max="300000" value="100"
-               oninput="updateDepositInfo()">
+        <div class="amount-section">
+            <div class="section-label">
+                <i class="bi bi-cash-stack"></i> Select Quick Amount
+            </div>
+            <div class="quick-deposits">
+                <div class="quick-deposit-btn" onclick="selectAmount(100)">
+                    <div class="deposit-amount">100</div>
+                    <div class="amount-label">KES</div>
+                </div>
+                <div class="quick-deposit-btn" onclick="selectAmount(500)">
+                    <div class="deposit-amount">500</div>
+                    <div class="amount-label">KES</div>
+                </div>
+                <div class="quick-deposit-btn" onclick="selectAmount(1000)">
+                    <div class="deposit-amount">1,000</div>
+                    <div class="amount-label">KES</div>
+                </div>
+                <div class="quick-deposit-btn" onclick="selectAmount(2000)">
+                    <div class="deposit-amount">2,000</div>
+                    <div class="amount-label">KES</div>
+                </div>
+                <div class="quick-deposit-btn" onclick="selectAmount(5000)">
+                    <div class="deposit-amount">5,000</div>
+                    <div class="amount-label">KES</div>
+                </div>
+                <div class="quick-deposit-btn" onclick="selectAmount(10000)">
+                    <div class="deposit-amount">10,000</div>
+                    <div class="amount-label">KES</div>
+                </div>
+            </div>
+        </div>
         
-        <div class="form-group" style="margin-top: 1.5rem;">
-            <label for="phoneNumber">M-Pesa Phone Number</label>
-            <input type="tel" id="phoneNumber" class="form-control" 
+        <div class="custom-amount-group">
+            <div class="section-label">
+                <i class="bi bi-pencil-square"></i> Or Enter Custom Amount
+            </div>
+            <input type="number" id="customAmount" class="custom-amount" 
+                   placeholder="Enter amount (Min: 10 KES)" 
+                   min="10" max="300000" value="100"
+                   oninput="updateDepositInfo()">
+        </div>
+        
+        <div class="phone-input-group">
+            <label for="phoneNumber">
+                <i class="bi bi-phone"></i> M-Pesa Phone Number
+            </label>
+            <input type="tel" id="phoneNumber" class="phone-input" 
                    value="{{ user.phone_number }}" 
                    placeholder="0712345678">
         </div>
         
-        <div class="deposit-info">
-            <div class="info-row">
-                <span>Deposit Amount:</span>
+        <div class="deposit-summary">
+            <div class="summary-row">
+                <span class="label">Deposit Amount:</span>
                 <span class="value" id="displayAmount">100 KES</span>
             </div>
-            <div class="info-row">
-                <span>Transaction Fee:</span>
+            <div class="summary-row">
+                <span class="label">Transaction Fee:</span>
                 <span class="value">Free</span>
             </div>
-            <div class="info-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.5rem;">
-                <span style="font-size: 1.1rem; color: var(--text-primary);">Total to Pay:</span>
-                <span class="value" style="font-size: 1.2rem; color: var(--success-color);" id="totalAmount">100 KES</span>
+            <div class="summary-row total">
+                <span class="label">Total to Pay:</span>
+                <span class="value" id="totalAmount">100 KES</span>
             </div>
         </div>
         
         <button class="deposit-btn" id="depositBtn" onclick="initiateDeposit()">
-            DEPOSIT VIA M-PESA
+            <i class="bi bi-phone-fill"></i>
+            <span>DEPOSIT VIA M-PESA</span>
         </button>
         
-        <div class="instructions">
-            <h4>How it works:</h4>
+        <div class="info-box">
+            <div class="info-box-title">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>How it works</span>
+            </div>
             <ol>
-                <li>Click "Deposit via M-Pesa" button</li>
-                <li>Enter your M-Pesa PIN on your phone</li>
-                <li>Confirm the transaction</li>
-                <li>Money will be credited instantly!</li>
+                <li>Click the "Deposit via M-Pesa" button above</li>
+                <li>You'll receive an STK push notification on your phone</li>
+                <li>Enter your M-Pesa PIN to authorize the transaction</li>
+                <li>Funds will be credited to your account instantly!</li>
             </ol>
         </div>
+    </div>
+</div>
+
+<!-- STK Push Modal -->
+<div class="modal-backdrop" id="stkModal">
+    <div class="modal-content">
+        <div class="modal-icon">📱</div>
+        <h2 class="modal-title">Check Your Phone</h2>
+        <p class="modal-message">
+            An M-Pesa STK push has been sent to your phone. Please enter your PIN to complete the transaction.
+        </p>
+        <div class="modal-phone">
+            <div class="modal-phone-label">Phone Number</div>
+            <div class="modal-phone-number" id="modalPhoneNumber"></div>
+        </div>
+        <div class="modal-phone">
+            <div class="modal-phone-label">Amount to Pay</div>
+            <div class="modal-phone-number" id="modalAmount"></div>
+        </div>
+        <div class="loading-spinner"></div>
+        <p class="modal-message" style="font-size: 0.85rem; margin-top: 1rem;">
+            Waiting for payment confirmation...
+        </p>
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('stkModal')">
+            Cancel
+        </button>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="successModal">
+    <div class="modal-content">
+        <div class="success-checkmark">
+            <i class="bi bi-check-lg"></i>
+        </div>
+        <h2 class="modal-title">Deposit Successful!</h2>
+        <p class="modal-message">
+            Your account has been credited successfully.
+        </p>
+        <div class="modal-phone">
+            <div class="modal-phone-label">Amount Deposited</div>
+            <div class="modal-phone-number" id="successAmount"></div>
+        </div>
+        <div class="modal-phone">
+            <div class="modal-phone-label">New Balance</div>
+            <div class="modal-phone-number" id="successBalance"></div>
+        </div>
+        <button class="modal-btn modal-btn-success" onclick="closeSuccessModal()">
+            <i class="bi bi-controller"></i> Start Playing
+        </button>
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('successModal')">
+            Close
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-backdrop" id="errorModal">
+    <div class="modal-content">
+        <div class="modal-icon" style="color: var(--danger-color);">❌</div>
+        <h2 class="modal-title" style="color: var(--danger-color);">Transaction Failed</h2>
+        <p class="modal-message" id="errorMessage">
+            The transaction could not be completed. Please try again.
+        </p>
+        <button class="modal-btn modal-btn-secondary" onclick="closeModal('errorModal')">
+            Close
+        </button>
+        <button class="modal-btn modal-btn-success" onclick="retryDeposit()">
+            Try Again
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -231,6 +687,8 @@
 {% block extra_js %}
 <script>
     let selectedAmount = 100;
+    let currentTransactionId = null;
+    let checkStatusInterval = null;
     
     function selectAmount(amount) {
         selectedAmount = amount;
@@ -252,11 +710,38 @@
         document.getElementById('totalAmount').textContent = formatCurrency(selectedAmount) + ' KES';
     }
     
+    function showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Stop checking status if STK modal is closed
+        if (modalId === 'stkModal' && checkStatusInterval) {
+            clearInterval(checkStatusInterval);
+            checkStatusInterval = null;
+        }
+    }
+    
+    function closeSuccessModal() {
+        closeModal('successModal');
+        window.location.href = '{% url "aviator:game" %}';
+    }
+    
+    function retryDeposit() {
+        closeModal('errorModal');
+        initiateDeposit();
+    }
+    
     async function initiateDeposit() {
         const amount = selectedAmount;
         const phoneNumber = document.getElementById('phoneNumber').value;
         const depositBtn = document.getElementById('depositBtn');
         
+        // Validation
         if (amount < 10) {
             showToast('Minimum deposit is 10 KES', 'error');
             return;
@@ -272,54 +757,105 @@
             return;
         }
         
+        // Disable button
         depositBtn.disabled = true;
-        depositBtn.textContent = 'PROCESSING...';
+        const originalText = depositBtn.innerHTML;
+        depositBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i><span>PROCESSING...</span>';
         
-        const result = await apiCall('{% url "aviator:api_initiate_deposit" %}', 'POST', {
-            amount: amount,
-            phone_number: phoneNumber
-        });
-        
-        if (result.success) {
-            showToast('STK push sent! Check your phone', 'success');
+        try {
+            const result = await apiCall('{% url "aviator:api_initiate_deposit" %}', 'POST', {
+                amount: amount,
+                phone_number: phoneNumber
+            });
             
-            // Start checking transaction status
-            checkTransactionStatus(result.checkout_request_id);
-        } else {
-            showToast(result.message, 'error');
+            if (result.success) {
+                // Show STK push modal
+                document.getElementById('modalPhoneNumber').textContent = phoneNumber;
+                document.getElementById('modalAmount').textContent = formatCurrency(amount) + ' KES';
+                currentTransactionId = result.transaction_id;
+                
+                showModal('stkModal');
+                
+                // Simulate M-Pesa payment process (3-5 seconds)
+                simulateMpesaPayment(result.transaction_id, amount);
+            } else {
+                showToast(result.message, 'error');
+                depositBtn.disabled = false;
+                depositBtn.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Deposit error:', error);
+            showToast('Network error. Please try again.', 'error');
             depositBtn.disabled = false;
-            depositBtn.textContent = 'DEPOSIT VIA M-PESA';
+            depositBtn.innerHTML = originalText;
         }
     }
     
-    function checkTransactionStatus(checkoutRequestId) {
-        // Poll for transaction status
-        let attempts = 0;
-        const maxAttempts = 30; // 30 seconds
+    async function simulateMpesaPayment(transactionId, amount) {
+        // Simulate M-Pesa payment delay (3-4 seconds)
+        const delay = 3000 + Math.random() * 1000;
         
-        const interval = setInterval(async () => {
-            attempts++;
+        setTimeout(async () => {
+            // Simulate 95% success rate
+            const isSuccessful = Math.random() < 0.95;
             
-            if (attempts > maxAttempts) {
-                clearInterval(interval);
+            if (isSuccessful) {
+                // Update user balance
+                await updateBalance();
+                
+                // Get new balance
+                const balanceResult = await apiCall('{% url "aviator:api_user_balance" %}');
+                
+                // Close STK modal
+                closeModal('stkModal');
+                
+                // Show success modal
+                document.getElementById('successAmount').textContent = formatCurrency(amount) + ' KES';
+                if (balanceResult.success) {
+                    document.getElementById('successBalance').textContent = formatCurrency(balanceResult.total_balance) + ' KES';
+                }
+                
+                showModal('successModal');
+                
+                // Show success toast
+                showToast(`Successfully deposited ${formatCurrency(amount)} KES`, 'success');
+                
+                // Re-enable deposit button
                 const depositBtn = document.getElementById('depositBtn');
                 depositBtn.disabled = false;
-                depositBtn.textContent = 'DEPOSIT VIA M-PESA';
-                showToast('Transaction timeout. Please try again.', 'warning');
-                return;
+                depositBtn.innerHTML = '<i class="bi bi-phone-fill"></i><span>DEPOSIT VIA M-PESA</span>';
+            } else {
+                // Close STK modal
+                closeModal('stkModal');
+                
+                // Show error modal
+                document.getElementById('errorMessage').textContent = 
+                    'Transaction was cancelled or timed out. Please ensure you enter your M-Pesa PIN within 60 seconds.';
+                showModal('errorModal');
+                
+                // Re-enable deposit button
+                const depositBtn = document.getElementById('depositBtn');
+                depositBtn.disabled = false;
+                depositBtn.innerHTML = '<i class="bi bi-phone-fill"></i><span>DEPOSIT VIA M-PESA</span>';
             }
-            
-            // Check balance to see if deposit was successful
-            const balanceResult = await apiCall('{% url "aviator:api_user_balance" %}');
-            
-            // You would ideally check the specific transaction status
-            // For simplicity, we're just updating balance
-            await updateBalance();
-            
-        }, 1000);
+        }, delay);
     }
     
+    // Close modals when clicking outside
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal(this.id);
+            }
+        });
+    });
+    
     // Initialize
-    updateDepositInfo();
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDepositInfo();
+        
+        // Select first quick amount by default
+        document.querySelector('.quick-deposit-btn').classList.add('selected');
+    });
 </script>
 {% endblock %}

@@ -23,6 +23,8 @@ urlpatterns = [
     # Transactions
     path('deposit/', views.deposit_view, name='deposit'),
     path('api/deposit/initiate/', views.initiate_deposit, name='api_initiate_deposit'),
+    path('api/deposit/complete/', views.complete_deposit, name='api_complete_deposit'),
+    path('api/deposit/status/', views.check_deposit_status, name='api_check_deposit_status'),
     path('api/withdraw/', views.withdraw_funds, name='api_withdraw'),
     path('transactions/', views.transaction_history, name='transactions'),
     path('api/transactions/', views.get_transactions_api, name='api_transactions'),

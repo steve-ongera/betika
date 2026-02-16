@@ -411,6 +411,32 @@ def cashout_bet(request):
 
 
 # Transaction Views
+import json
+import uuid
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db import transaction as db_transaction
+from .models import (
+    User, GameRound, Bet, Transaction, ChatMessage, 
+    Rain, UserStatistics, MpesaPayment
+)
+
+
+def generate_reference():
+    """Generate unique transaction reference"""
+    return f"TXN{uuid.uuid4().hex[:12].upper()}"
+
+
+def generate_mpesa_receipt():
+    """Generate simulated M-Pesa receipt number"""
+    return f"QGH{uuid.uuid4().hex[:8].upper()}"
+
+
 @login_required
 def deposit_view(request):
     """Deposit page"""
@@ -420,12 +446,13 @@ def deposit_view(request):
 @login_required
 @require_http_methods(["POST"])
 def initiate_deposit(request):
-    """Initiate M-Pesa deposit"""
+    """Initiate M-Pesa deposit (simulated)"""
     try:
         data = json.loads(request.body)
-        amount = Decimal(str(data.get('amount')))
+        amount = Decimal(str(data.get('amount', 0)))
         phone_number = data.get('phone_number', request.user.phone_number)
         
+        # Validation
         if amount < 10:
             return JsonResponse({
                 'success': False,
@@ -438,53 +465,182 @@ def initiate_deposit(request):
                 'message': 'Maximum deposit is 300,000 KES'
             }, status=400)
         
-        # Create transaction record
-        transaction = Transaction.objects.create(
-            user=request.user,
-            transaction_type='deposit',
-            amount=amount,
-            status='pending',
-            reference=generate_reference(),
-            description=f'M-Pesa deposit',
-            balance_before=request.user.get_total_balance(),
-            balance_after=request.user.get_total_balance()
-        )
-        
-        # Create M-Pesa payment record
-        mpesa_payment = MpesaPayment.objects.create(
-            user=request.user,
-            transaction=transaction,
-            phone_number=phone_number,
-            amount=amount,
-            status='pending'
-        )
-        
-        # Process M-Pesa STK push (you'll need to implement this)
-        result = process_mpesa_payment(phone_number, amount, str(transaction.id))
-        
-        if result.get('success'):
-            mpesa_payment.merchant_request_id = result.get('MerchantRequestID')
-            mpesa_payment.checkout_request_id = result.get('CheckoutRequestID')
-            mpesa_payment.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'STK push sent to your phone',
-                'transaction_id': str(transaction.id),
-                'checkout_request_id': mpesa_payment.checkout_request_id
-            })
-        else:
-            transaction.status = 'failed'
-            transaction.save()
-            mpesa_payment.status = 'failed'
-            mpesa_payment.result_desc = result.get('message', 'Failed to process payment')
-            mpesa_payment.save()
-            
+        # Validate phone number format
+        if not phone_number or len(phone_number) < 10:
             return JsonResponse({
                 'success': False,
-                'message': result.get('message', 'Failed to initiate payment')
+                'message': 'Invalid phone number'
             }, status=400)
+        
+        # Create transaction record
+        with db_transaction.atomic():
+            transaction_ref = generate_reference()
             
+            transaction_record = Transaction.objects.create(
+                user=request.user,
+                transaction_type='deposit',
+                amount=amount,
+                status='pending',
+                reference=transaction_ref,
+                description=f'M-Pesa deposit of {amount} KES',
+                balance_before=request.user.get_total_balance(),
+                balance_after=request.user.get_total_balance()
+            )
+            
+            # Create M-Pesa payment record (simulated)
+            checkout_request_id = f"ws_CO_{uuid.uuid4().hex[:20]}"
+            merchant_request_id = f"merchant_{uuid.uuid4().hex[:15]}"
+            
+            mpesa_payment = MpesaPayment.objects.create(
+                user=request.user,
+                transaction=transaction_record,
+                phone_number=phone_number,
+                amount=amount,
+                merchant_request_id=merchant_request_id,
+                checkout_request_id=checkout_request_id,
+                status='pending'
+            )
+        
+        # Return success response
+        return JsonResponse({
+            'success': True,
+            'message': 'STK push sent to your phone',
+            'transaction_id': str(transaction_record.id),
+            'checkout_request_id': checkout_request_id,
+            'merchant_request_id': merchant_request_id
+        })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request data'
+        }, status=400)
+    except Exception as e:
+        print(f"Deposit error: {str(e)}")  # For debugging
+        return JsonResponse({
+            'success': False,
+            'message': f'Error processing deposit: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def complete_deposit(request):
+    """Complete M-Pesa deposit (simulated callback)"""
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        is_success = data.get('success', True)  # Simulated success
+        
+        if not transaction_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Transaction ID required'
+            }, status=400)
+        
+        with db_transaction.atomic():
+            # Get transaction
+            transaction_record = Transaction.objects.select_for_update().get(
+                id=transaction_id,
+                user=request.user
+            )
+            
+            # Get M-Pesa payment record
+            mpesa_payment = MpesaPayment.objects.select_for_update().get(
+                transaction=transaction_record
+            )
+            
+            if is_success:
+                # Generate M-Pesa receipt
+                mpesa_receipt = generate_mpesa_receipt()
+                
+                # Update transaction
+                transaction_record.status = 'completed'
+                transaction_record.mpesa_receipt = mpesa_receipt
+                transaction_record.balance_after = transaction_record.balance_before + transaction_record.amount
+                transaction_record.save()
+                
+                # Update M-Pesa payment
+                mpesa_payment.status = 'success'
+                mpesa_payment.mpesa_receipt_number = mpesa_receipt
+                mpesa_payment.result_code = '0'
+                mpesa_payment.result_desc = 'The service request is processed successfully.'
+                mpesa_payment.save()
+                
+                # Credit user account
+                request.user.balance += transaction_record.amount
+                request.user.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Deposit completed successfully',
+                    'new_balance': float(request.user.get_total_balance()),
+                    'amount': float(transaction_record.amount),
+                    'mpesa_receipt': mpesa_receipt
+                })
+            else:
+                # Mark as failed
+                transaction_record.status = 'failed'
+                transaction_record.save()
+                
+                mpesa_payment.status = 'failed'
+                mpesa_payment.result_code = '1'
+                mpesa_payment.result_desc = 'Transaction cancelled by user'
+                mpesa_payment.save()
+                
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Transaction cancelled or failed'
+                }, status=400)
+                
+    except Transaction.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Transaction not found'
+        }, status=404)
+    except Exception as e:
+        print(f"Complete deposit error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Error completing deposit: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def check_deposit_status(request):
+    """Check deposit status"""
+    try:
+        transaction_id = request.GET.get('transaction_id')
+        
+        if not transaction_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Transaction ID required'
+            }, status=400)
+        
+        transaction_record = Transaction.objects.get(
+            id=transaction_id,
+            user=request.user
+        )
+        
+        mpesa_payment = MpesaPayment.objects.get(
+            transaction=transaction_record
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'status': transaction_record.status,
+            'mpesa_status': mpesa_payment.status,
+            'amount': float(transaction_record.amount),
+            'mpesa_receipt': transaction_record.mpesa_receipt or ''
+        })
+        
+    except Transaction.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Transaction not found'
+        }, status=404)
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -492,6 +648,23 @@ def initiate_deposit(request):
         }, status=500)
 
 
+# Add this helper function for your process_mpesa_payment
+def process_mpesa_payment(phone_number, amount, transaction_id):
+    """
+    Simulated M-Pesa payment processing
+    In production, this would make actual API calls to M-Pesa
+    """
+    # For now, return simulated success
+    return {
+        'success': True,
+        'MerchantRequestID': f"merchant_{uuid.uuid4().hex[:15]}",
+        'CheckoutRequestID': f"ws_CO_{uuid.uuid4().hex[:20]}",
+        'ResponseCode': '0',
+        'ResponseDescription': 'Success. Request accepted for processing',
+        'CustomerMessage': 'Success. Request accepted for processing'
+    }
+    
+    
 @login_required
 @require_http_methods(["POST"])
 def withdraw_funds(request):
