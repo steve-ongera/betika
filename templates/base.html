@@ -3,21 +3,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{% block title %}Aviator Game{% endblock %}</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <!-- CSS -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         :root {
             --primary-color: #ff5722;
             --secondary-color: #1a1f2e;
@@ -32,18 +31,24 @@
             --hover-bg: #252b3b;
         }
         
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--dark-bg);
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
         }
         
-        /* Header Styles */
+        /* Header */
         .header {
             background-color: var(--secondary-color);
-            padding: 1rem 0;
+            padding: 0.75rem 0;
             border-bottom: 2px solid var(--border-color);
             position: sticky;
             top: 0;
@@ -51,44 +56,21 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
-        .header-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
         .logo {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: var(--primary-color);
             text-decoration: none;
             font-style: italic;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .logo::before {
-            content: "✈️";
-            font-size: 2rem;
-        }
-        
-        .nav-menu {
-            display: flex;
-            gap: 1.5rem;
-            list-style: none;
-            align-items: center;
         }
         
         .nav-menu a {
             color: var(--text-primary);
             text-decoration: none;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.75rem;
             border-radius: 5px;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
         
         .nav-menu a:hover {
@@ -98,28 +80,25 @@
         
         .balance-display {
             background-color: var(--dark-bg);
-            padding: 0.7rem 1.5rem;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
             border: 1px solid var(--border-color);
+            font-size: 0.9rem;
         }
         
         .balance-amount {
             font-weight: bold;
             color: var(--success-color);
-            font-size: 1.1rem;
         }
         
         .btn-deposit {
             background: linear-gradient(135deg, var(--primary-color), #ff7043);
             color: white;
             border: none;
-            padding: 0.6rem 1.5rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
-            cursor: pointer;
             font-weight: 600;
+            font-size: 0.85rem;
             transition: transform 0.2s;
         }
         
@@ -129,128 +108,66 @@
         
         /* Main Container */
         .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
+            padding: 1rem;
         }
         
         /* Footer */
         .footer {
             background-color: var(--secondary-color);
-            padding: 2rem 0;
-            margin-top: 3rem;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
             border-top: 2px solid var(--border-color);
         }
         
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .footer-section h3 {
+        .footer-section h6 {
             color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
-        .footer-section ul {
-            list-style: none;
-        }
-        
-        .footer-section ul li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
         
         .footer-section a {
             color: var(--text-secondary);
             text-decoration: none;
-            transition: color 0.3s;
+            font-size: 0.85rem;
         }
         
         .footer-section a:hover {
             color: var(--primary-color);
         }
         
-        /* Utility Classes */
-        .btn {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        
+        /* Buttons */
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color), #ff7043);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+            border: none;
         }
         
         .btn-success {
             background-color: var(--success-color);
-            color: white;
         }
         
         .btn-danger {
             background-color: var(--danger-color);
-            color: white;
         }
         
+        /* Cards */
         .card {
             background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 1.5rem;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
-        .text-success {
-            color: var(--success-color);
-        }
-        
-        .text-danger {
-            color: var(--danger-color);
-        }
-        
-        .text-warning {
-            color: var(--warning-color);
-        }
-        
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Toast Notifications */
-        .toast {
+        /* Toast */
+        .toast-container {
             position: fixed;
             top: 80px;
             right: 20px;
-            padding: 1rem 1.5rem;
+            z-index: 9999;
+        }
+        
+        .toast {
+            padding: 0.75rem 1rem;
             border-radius: 8px;
             color: white;
             font-weight: 500;
-            z-index: 9999;
+            margin-bottom: 0.5rem;
             animation: slideIn 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
@@ -278,116 +195,23 @@
             }
         }
         
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            animation: fadeIn 0.3s;
-        }
-        
-        .modal-content {
-            background-color: var(--card-bg);
-            margin: 5% auto;
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 500px;
-            border: 1px solid var(--border-color);
-            animation: slideDown 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .close-modal {
-            color: var(--text-secondary);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close-modal:hover {
-            color: var(--text-primary);
-        }
-        
         /* Form Styles */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
         .form-control {
-            width: 100%;
-            padding: 0.8rem;
             background-color: var(--dark-bg);
             border: 1px solid var(--border-color);
-            border-radius: 5px;
             color: var(--text-primary);
-            font-size: 1rem;
         }
         
         .form-control:focus {
-            outline: none;
+            background-color: var(--dark-bg);
             border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
         }
         
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: var(--secondary-color);
-                flex-direction: column;
-                padding: 1rem;
-                border-top: 1px solid var(--border-color);
-            }
-            
-            .nav-menu.active {
-                display: flex;
-            }
-            
-            .balance-display {
-                flex-direction: column;
-                gap: 0.5rem;
-                padding: 0.5rem 1rem;
-            }
-            
-            .footer-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Custom scrollbar */
+        /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
         
         ::-webkit-scrollbar-track {
@@ -396,11 +220,36 @@
         
         ::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 5px;
+            border-radius: 4px;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--hover-bg);
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.5rem 0;
+            }
+            
+            .logo {
+                font-size: 1.25rem;
+            }
+            
+            .nav-menu {
+                font-size: 0.85rem;
+            }
+            
+            .balance-display {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.8rem;
+            }
+            
+            .btn-deposit {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            
+            .main-container {
+                padding: 0.5rem;
+            }
         }
     </style>
     
@@ -409,38 +258,56 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-container">
-            <a href="{% url 'aviator:home' %}" class="logo">Aviator</a>
-            
-            {% if user.is_authenticated %}
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="{% url 'aviator:game' %}">Play</a></li>
-                    <li><a href="{% url 'aviator:betting_history' %}">My Bets</a></li>
-                    <li><a href="{% url 'aviator:transactions' %}">Transactions</a></li>
-                    <li><a href="{% url 'aviator:profile' %}">Profile</a></li>
-                    <li><a href="{% url 'aviator:leaderboard' %}">Leaderboard</a></li>
-                </ul>
-            </nav>
-            
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <div class="balance-display">
-                    <span>Balance:</span>
-                    <span class="balance-amount" id="userBalance">{{ user.balance|floatformat:2 }} KES</span>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-4 col-md-2">
+                    <a href="{% url 'aviator:home' %}" class="logo">
+                        <i class="bi bi-airplane-fill"></i> Aviator
+                    </a>
                 </div>
-                <button class="btn-deposit" onclick="window.location.href='{% url 'aviator:deposit' %}'">
-                    💰 Deposit
-                </button>
-                <a href="{% url 'aviator:logout' %}" style="color: var(--text-secondary); text-decoration: none;">
-                    Logout
-                </a>
+                
+                {% if user.is_authenticated %}
+                <div class="col-8 col-md-10">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                        <nav class="nav-menu d-none d-md-flex gap-2">
+                            <a href="{% url 'aviator:game' %}">
+                                <i class="bi bi-controller"></i> Play
+                            </a>
+                            <a href="{% url 'aviator:betting_history' %}">
+                                <i class="bi bi-clock-history"></i> Bets
+                            </a>
+                            <a href="{% url 'aviator:transactions' %}">
+                                <i class="bi bi-wallet2"></i> Transactions
+                            </a>
+                            <a href="{% url 'aviator:profile' %}">
+                                <i class="bi bi-person-circle"></i> Profile
+                            </a>
+                        </nav>
+                        
+                        <div class="balance-display">
+                            <i class="bi bi-cash-coin"></i>
+                            <span class="balance-amount" id="userBalance">{{ user.balance|floatformat:2 }}</span>
+                            <small>KES</small>
+                        </div>
+                        
+                        <button class="btn-deposit" onclick="window.location.href='{% url 'aviator:deposit' %}'">
+                            <i class="bi bi-plus-circle"></i> Deposit
+                        </button>
+                        
+                        <a href="{% url 'aviator:logout' %}" class="text-secondary d-none d-md-inline">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-8 col-md-10">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'aviator:login' %}" class="btn btn-primary btn-sm">Login</a>
+                        <a href="{% url 'aviator:register' %}" class="btn btn-primary btn-sm">Register</a>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div style="display: flex; gap: 1rem;">
-                <a href="{% url 'aviator:login' %}" class="btn btn-primary">Login</a>
-                <a href="{% url 'aviator:register' %}" class="btn btn-primary">Register</a>
-            </div>
-            {% endif %}
         </div>
     </header>
     
@@ -451,179 +318,161 @@
     
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>About Aviator</h3>
-                <p style="color: var(--text-secondary);">
-                    Experience the thrill of the Aviator game. Cash out before the plane flies away!
-                </p>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6 footer-section mb-3">
+                    <h6>About</h6>
+                    <p class="small text-secondary">
+                        Experience thrilling Aviator gameplay
+                    </p>
+                </div>
+                
+                <div class="col-md-3 col-6 footer-section mb-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'aviator:game' %}">Play Game</a></li>
+                        <li><a href="#">How to Play</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-3 col-6 footer-section mb-3">
+                    <h6>Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-3 col-6 footer-section mb-3">
+                    <h6>Payment</h6>
+                    <p class="small text-secondary">
+                        <i class="bi bi-phone-fill"></i> M-Pesa<br>
+                        <i class="bi bi-lightning-fill"></i> Instant<br>
+                        <i class="bi bi-shield-check"></i> Secure
+                    </p>
+                </div>
             </div>
             
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="{% url 'aviator:game' %}">Play Game</a></li>
-                    <li><a href="{% url 'aviator:leaderboard' %}">Leaderboard</a></li>
-                    <li><a href="#">How to Play</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                </ul>
+            <div class="text-center pt-3 border-top border-secondary">
+                <small class="text-secondary">&copy; 2026 Aviator | 18+ | Play Responsibly</small>
             </div>
-            
-            <div class="footer-section">
-                <h3>Support</h3>
-                <ul>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Responsible Gaming</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Payment Methods</h3>
-                <p style="color: var(--text-secondary);">
-                    💳 M-Pesa<br>
-                    ⚡ Instant Deposits<br>
-                    🔒 Secure Transactions
-                </p>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color); color: var(--text-secondary);">
-            <p>&copy; 2026 Aviator Game. All rights reserved. | 18+ Only | Play Responsibly</p>
         </div>
     </footer>
     
     <!-- Toast Container -->
-    <div id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer"></div>
     
-    <!-- Base JavaScript -->
+    <!-- Bootstrap JS (Load after content) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    
+    <!-- Base JavaScript (Load after Bootstrap) -->
     <script>
-        // Global Toast Notification Function
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideIn 0.3s ease reverse';
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global Toast Notification Function
+            window.showToast = function(message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                
                 setTimeout(() => {
-                    container.removeChild(toast);
-                }, 300);
-            }, 3000);
-        }
-        
-        // Global API Call Function
-        async function apiCall(url, method = 'GET', data = null) {
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    toast.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => {
+                        container.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            };
+            
+            // Global API Call Function
+            window.apiCall = async function(url, method = 'GET', data = null) {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                };
+                
+                if (data && method !== 'GET') {
+                    options.body = JSON.stringify(data);
+                }
+                
+                try {
+                    const response = await fetch(url, options);
+                    const result = await response.json();
+                    return result;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return { success: false, message: 'Network error' };
                 }
             };
             
-            if (data && method !== 'GET') {
-                options.body = JSON.stringify(data);
-            }
-            
-            try {
-                const response = await fetch(url, options);
-                const result = await response.json();
-                return result;
-            } catch (error) {
-                console.error('API Error:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-        
-        // Get CSRF Token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+            // Get CSRF Token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
                     }
                 }
+                return cookieValue;
             }
-            return cookieValue;
-        }
-        
-        // Format Currency
-        function formatCurrency(amount) {
-            return parseFloat(amount).toLocaleString('en-KE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-        
-        // Update Balance Display
-        async function updateBalance() {
-            const result = await apiCall('{% url "aviator:api_user_balance" %}');
-            if (result.success) {
-                const balanceElement = document.getElementById('userBalance');
-                if (balanceElement) {
-                    balanceElement.textContent = formatCurrency(result.total_balance) + ' KES';
+            
+            // Format Currency
+            window.formatCurrency = function(amount) {
+                return parseFloat(amount).toLocaleString('en-KE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            };
+            
+            // Update Balance Display
+            window.updateBalance = async function() {
+                const result = await apiCall('{% url "aviator:api_user_balance" %}');
+                if (result.success) {
+                    const balanceElement = document.getElementById('userBalance');
+                    if (balanceElement) {
+                        balanceElement.textContent = formatCurrency(result.total_balance);
+                    }
                 }
-            }
-        }
-        
-        // Modal Functions
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'block';
-            }
-        }
-        
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
-        
-        // Format Time Ago
-        function timeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
+            };
             
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + " years ago";
+            // Format Time Ago
+            window.timeAgo = function(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+                
+                let interval = seconds / 31536000;
+                if (interval > 1) return Math.floor(interval) + "y ago";
+                
+                interval = seconds / 2592000;
+                if (interval > 1) return Math.floor(interval) + "mo ago";
+                
+                interval = seconds / 86400;
+                if (interval > 1) return Math.floor(interval) + "d ago";
+                
+                interval = seconds / 3600;
+                if (interval > 1) return Math.floor(interval) + "h ago";
+                
+                interval = seconds / 60;
+                if (interval > 1) return Math.floor(interval) + "m ago";
+                
+                return Math.floor(seconds) + "s ago";
+            };
             
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + " months ago";
-            
-            interval = seconds / 86400;
-            if (interval > 1) return Math.floor(interval) + " days ago";
-            
-            interval = seconds / 3600;
-            if (interval > 1) return Math.floor(interval) + " hours ago";
-            
-            interval = seconds / 60;
-            if (interval > 1) return Math.floor(interval) + " minutes ago";
-            
-            return Math.floor(seconds) + " seconds ago";
-        }
-        
-        // Auto-update balance every 30 seconds
-        {% if user.is_authenticated %}
-        setInterval(updateBalance, 30000);
-        {% endif %}
+            {% if user.is_authenticated %}
+            // Auto-update balance every 30 seconds
+            setInterval(updateBalance, 30000);
+            {% endif %}
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
